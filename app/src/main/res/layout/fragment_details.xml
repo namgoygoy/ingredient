@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_main"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="분석 결과"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AI 분석 요약"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="성분 기반으로 볼 때, 이 제품은 대부분의 피부 타입에 적합해 보입니다."
+            android:textSize="14sp"
+            android:textColor="@color/text_muted"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginBottom="25dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="주요 특징"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="15dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="15dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="10dp"
+                android:text="✅ 중성, 지성"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:padding="20dp"
+                android:background="@color/bg_card" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="⚠️ 민감성, 건성"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:padding="20dp"
+                android:background="@color/bg_card" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="25dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="10dp"
+                android:text="💧 보습"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:padding="20dp"
+                android:background="@color/bg_card" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🛡️ 장벽"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:padding="20dp"
+                android:background="@color/bg_card" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="전성분 목록"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="15dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="정제수, 글리세린, 소듐하이알루로네이트..."
+            android:textSize="12sp"
+            android:textColor="@color/text_muted"
+            android:padding="15dp"
+            android:background="@color/bg_card" />
+
+    </LinearLayout>
+
+</ScrollView>

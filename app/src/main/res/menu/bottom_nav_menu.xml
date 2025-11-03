@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_scan"
+        android:icon="@android:drawable/ic_menu_camera"
+        android:title="스캔" />
+    <item
+        android:id="@+id/nav_results"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="결과" />
+    <item
+        android:id="@+id/nav_details"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="상세" />
+</menu>
+
+

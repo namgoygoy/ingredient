@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_scan">
+
+    <fragment
+        android:id="@+id/nav_scan"
+        android:name="com.example.cosmetic.ScanFragment"
+        android:label="스캔"
+        tools:layout="@layout/fragment_scan">
+        <action
+            android:id="@+id/action_nav_scan_to_nav_results"
+            app:destination="@id/nav_results" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_results"
+        android:name="com.example.cosmetic.ResultsFragment"
+        android:label="결과"
+        tools:layout="@layout/fragment_results">
+        <argument
+            android:name="recognizedText"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_details"
+        android:name="com.example.cosmetic.DetailsFragment"
+        android:label="상세"
+        tools:layout="@layout/fragment_details" />
+
+</navigation>
+
+

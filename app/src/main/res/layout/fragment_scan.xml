@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_main"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="스캔 화면"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="성분 목록 촬영하기"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="정확한 결과를 위해 목록이 밝고 초점이 맞았는지 확인하세요."
+        android:textSize="14sp"
+        android:textColor="@color/text_muted"
+        android:gravity="center"
+        android:layout_marginBottom="25dp" />
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_marginBottom="30dp" />
+
+    <Button
+        android:id="@+id/captureButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="촬영하기"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_light"
+        android:backgroundTint="@color/primary_green"
+        android:padding="16dp"
+        android:layout_marginBottom="10dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
+        
+        <Button
+            android:id="@+id/testButton1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="테스트 1"
+            android:textSize="14sp"
+            android:layout_marginEnd="5dp"
+            android:backgroundTint="@color/text_muted" />
+        
+        <Button
+            android:id="@+id/testButton2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="테스트 2"
+            android:textSize="14sp"
+            android:layout_marginStart="5dp"
+            android:backgroundTint="@color/text_muted" />
+    
+    </LinearLayout>
+
+</LinearLayout>

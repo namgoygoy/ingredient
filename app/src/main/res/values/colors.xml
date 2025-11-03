@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Ingredient App Colors -->
+    <color name="bg_main">#F9F9F9</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="primary_green">#34D07C</color>
+    <color name="text_dark">#111111</color>
+    <color name="text_muted">#888888</color>
+    <color name="text_light">#FFFFFF</color>
+    <color name="highlight_bg">#E6F8EE</color>
+    <color name="border_color">#EEEEEE</color>
+    <color name="icon_good">#2A9D8F</color>
+    <color name="icon_caution">#F4A261</color>
+    <color name="icon_hydrating">#2196F3</color>
+    <color name="icon_barrier">#9B59B6</color>
+</resources>
