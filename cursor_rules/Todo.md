@@ -23,7 +23,7 @@ Phase 2: Android 핵심 기능 개발 (Offline Logic)
 
 [✅] 촬영 버튼을 누르면 인식된 텍스트를 분석 모듈로 전달하는 기능 구현 - SharedViewModel을 통한 데이터 전달 완료
 
-[ ] OCR 전처리를 통한 인식 개선
+[ ] OCR 전처리를 통한 인식률 개선
 
 [ ] 핵심 요약 분석 기능 개발 (JSON 기반)
 

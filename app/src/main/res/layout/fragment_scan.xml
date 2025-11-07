@@ -76,6 +76,17 @@
             android:text="테스트 2"
             android:textSize="14sp"
             android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:backgroundTint="@color/text_muted" />
+        
+        <Button
+            android:id="@+id/testButton3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="테스트 3"
+            android:textSize="14sp"
+            android:layout_marginStart="5dp"
             android:backgroundTint="@color/text_muted" />
     
     </LinearLayout>

@@ -37,13 +37,88 @@
             android:textColor="@color/text_muted"
             android:layout_marginBottom="25dp" />
 
+        <!-- AI 분석 리포트 섹션 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✨ AI 종합 분석 리포트"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/aiAnalysisReport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="분석 중..."
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:background="@color/highlight_bg"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginBottom="20dp" />
+
+        <!-- 좋은 성분 섹션 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✅ 추천 성분"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/goodMatches"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:background="@color/bg_card"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone" />
+
+        <!-- 주의 성분 섹션 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚠️ 주의 성분"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/badMatches"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:background="@color/bg_card"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone" />
+
+        <!-- 상세보기 버튼 -->
+        <Button
+            android:id="@+id/viewDetailsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="상세 분석 보기"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_light"
+            android:backgroundTint="@color/primary_green"
+            android:padding="16dp"
+            android:layout_marginBottom="25dp" />
+
+        <!-- 기존 코드는 나중에 제거 예정 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="성분 상세 정보"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="15dp" />
+            android:layout_marginBottom="15dp"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="match_parent"

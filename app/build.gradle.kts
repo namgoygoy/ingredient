@@ -53,12 +53,19 @@ dependencies {
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
     
+    // RecyclerView
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.livedata)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.camera.core)
+    
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     // CameraX
     val cameraxVersion = "1.3.4"
@@ -72,6 +79,12 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
     // 한글 텍스트 인식 (추가)
     implementation("com.google.mlkit:text-recognition-korean:16.0.0")
+
+    // Retrofit for API calls
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // Testing
     testImplementation(libs.junit)

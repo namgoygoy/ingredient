@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_main"
@@ -11,31 +12,72 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="분석 결과"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
-
-        <TextView
+        <!-- 헤더 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="AI 분석 요약"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="10dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
 
-        <TextView
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:contentDescription="뒤로가기"
+                android:tint="@color/text_muted" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="분석 결과"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp" />
+        </LinearLayout>
+
+        <!-- AI 분석 요약 섹션 -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="성분 기반으로 볼 때, 이 제품은 대부분의 피부 타입에 적합해 보입니다."
-            android:textSize="14sp"
-            android:textColor="@color/text_muted"
-            android:lineSpacingExtra="4dp"
-            android:layout_marginBottom="25dp" />
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardUseCompatPadding="true">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="AI 분석 요약"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/aiSummaryText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="성분 기반으로 볼 때, 이 제품은 대부분의 피부 타입, 특히 지성 및 중성에 적합해 보입니다. 글리세린, 알란토인 등 여러 보습 및 진정 성분을 포함하고 있습니다. 하지만 페녹시에탄올이 함유되어 있어, 민감하거나 건조한 피부는 자극을 느낄 수 있으므로 주의가 필요합니다."
+                    android:textSize="14sp"
+                    android:textColor="@color/text_muted"
+                    android:lineSpacingExtra="4dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 주요 특징 섹션 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,64 +86,206 @@
             android:textStyle="bold"
             android:layout_marginBottom="15dp" />
 
+        <!-- 2x2 그리드 레이아웃 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="15dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="10dp"
-                android:text="✅ 중성, 지성"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:padding="20dp"
-                android:background="@color/bg_card" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="⚠️ 민감성, 건성"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:padding="20dp"
-                android:background="@color/bg_card" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginBottom="25dp">
 
-            <TextView
-                android:layout_width="0dp"
+            <!-- 첫 번째 행 -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="10dp"
-                android:text="💧 보습"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:padding="20dp"
-                android:background="@color/bg_card" />
+                android:orientation="horizontal"
+                android:layout_marginBottom="15dp">
 
-            <TextView
-                android:layout_width="0dp"
+                <!-- 추천 피부 카드 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="7.5dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🌿"
+                            android:textSize="24sp"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="추천 피부"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="5dp" />
+
+                        <TextView
+                            android:id="@+id/recommendedSkinTypes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="중성, 지성"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_muted"
+                            android:gravity="center" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- 주의 피부 카드 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="7.5dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚠️"
+                            android:textSize="24sp"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="주의 피부"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="5dp" />
+
+                        <TextView
+                            android:id="@+id/cautionSkinTypes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="민감성, 건성"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_muted"
+                            android:gravity="center" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+            <!-- 두 번째 행 -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="🛡️ 장벽"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:padding="20dp"
-                android:background="@color/bg_card" />
+                android:orientation="horizontal">
 
+                <!-- 보습 카드 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="7.5dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💧"
+                            android:textSize="24sp"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="보습"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="5dp" />
+
+                        <TextView
+                            android:id="@+id/hydratingIngredients"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="글리세린 함유"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_muted"
+                            android:gravity="center" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- 장벽 지원 카드 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="7.5dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🛡️"
+                            android:textSize="24sp"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="장벽 지원"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="5dp" />
+
+                        <TextView
+                            android:id="@+id/barrierIngredients"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="세라마이드"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_muted"
+                            android:gravity="center" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- 전성분 목록 섹션 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -110,14 +294,59 @@
             android:textStyle="bold"
             android:layout_marginBottom="15dp" />
 
-        <TextView
+        <!-- 접을 수 있는 전성분 카드 -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="정제수, 글리세린, 소듐하이알루로네이트..."
-            android:textSize="12sp"
-            android:textColor="@color/text_muted"
-            android:padding="15dp"
-            android:background="@color/bg_card" />
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- 접기/펼치기 헤더 -->
+                <LinearLayout
+                    android:id="@+id/ingredientToggleHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="모든 성분 보기"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/ingredientToggleIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▼"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_muted" />
+                </LinearLayout>
+
+                <!-- 전성분 리스트 (초기에는 숨김) -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/ingredientsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:visibility="gone"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
     </LinearLayout>
 

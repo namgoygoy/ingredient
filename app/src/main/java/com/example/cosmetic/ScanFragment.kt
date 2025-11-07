@@ -64,6 +64,10 @@ class ScanFragment : Fragment() {
         view.findViewById<View>(R.id.testButton2).setOnClickListener {
             testOCRFromAssets("OCR_cosmetic_sample/image_sample2.jpg")
         }
+        
+        view.findViewById<View>(R.id.testButton3).setOnClickListener {
+            testOCRFromAssets("OCR_cosmetic_sample/image_sample3.png")
+        }
     }
     
     private fun allPermissionsGranted() = 
@@ -159,10 +163,10 @@ class ScanFragment : Fragment() {
                     imageProxy.close()
                     
                     if (recognizedText.isNotEmpty()) {
-                        // 결과 화면으로 텍스트 전달
+                        // 상세 화면으로 텍스트 전달
                         activity?.runOnUiThread {
                             sharedViewModel.recognizedText.value = recognizedText
-                            findNavController().navigate(R.id.nav_results)
+                            findNavController().navigate(R.id.action_nav_scan_to_nav_details)
                         }
                     } else {
                         Toast.makeText(
@@ -208,9 +212,9 @@ class ScanFragment : Fragment() {
                         val recognizedText = visionText.text
                         
                         if (recognizedText.isNotEmpty()) {
-                            // 결과 화면으로 텍스트 전달
+                            // 상세 화면으로 텍스트 전달
                             sharedViewModel.recognizedText.value = recognizedText
-                            findNavController().navigate(R.id.nav_results)
+                            findNavController().navigate(R.id.action_nav_scan_to_nav_details)
                         } else {
                             Toast.makeText(
                                 requireContext(),
