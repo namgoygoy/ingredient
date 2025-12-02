@@ -1,7 +1,7 @@
 ✅ 인그리디언트 (Ingrediant) 프로젝트 To-do List (v1.2 - RAG 반영)
 Phase 1: UI 설계 및 기본 설정 (UI First)
 
-[✅] Android 프로젝트 생성 (Kotlin, MVVM 아키텍처 설정) - 기본 구조 완료 (ViewModel 클래스 추가 필요)
+[✅] Android 프로젝트 생성 (Kotlin, MVVM 아키텍처 설정) - 기본 구조 완료, SharedViewModel 구현 완료
 
 [✅] Jetpack Compose를 사용한 화면별 UI 레이아웃 설계 (Mockup) - XML 기반 레이아웃으로 완료 (Compose 미사용)
 
@@ -13,7 +13,7 @@ Phase 1: UI 설계 및 기본 설정 (UI First)
 
 [✅] ingredients.json 파일을 앱 내에 포함 (Asset) - assets 폴더에 복사 완료
 
-[ ] JSON 데이터 구조에 맞는 데이터 클래스 설계 (id, name, good_for, bad_for 등)
+[✅] JSON 데이터 구조에 맞는 데이터 클래스 설계 (id, name, good_for, bad_for 등) - AnalyzeProductModels.kt에 구현 완료
 
 Phase 2: Android 핵심 기능 개발 (Offline Logic)
 
@@ -25,65 +25,57 @@ Phase 2: Android 핵심 기능 개발 (Offline Logic)
 
 [ ] OCR 전처리를 통한 인식률 개선
 
-[ ] 핵심 요약 분석 기능 개발 (JSON 기반)
+[✅] 핵심 요약 분석 기능 개발 (JSON 기반) - 백엔드 analyze_product_ingredients 함수로 구현 완료
 
-[ ] ingredients.json 파싱 로직 구현
+[✅] ingredients.json 파싱 로직 구현 - 백엔드에서 처리 완료
 
-[ ] 추출된 텍스트(성분명)와 ingredients.json 데이터를 매칭하는 로직 개발
+[✅] 추출된 텍스트(성분명)와 ingredients.json 데이터를 매칭하는 로직 개발 - 백엔드에서 정확/부분 매칭 구현 완료
 
-[ ] 모든 성분의 good_for, bad_for 태그를 집계하는 기능 구현
+[✅] 모든 성분의 good_for, bad_for 태그를 집계하는 기능 구현 - 백엔드에서 집계 로직 완료
 
-[ ] 집계된 데이터를 바탕으로 "추천 피부 타입"과 "주의 피부 타입"을 결정하는 분석 로직 개발
+[✅] 집계된 데이터를 바탕으로 "추천 피부 타입"과 "주의 피부 타입"을 결정하는 분석 로직 개발 - 백엔드에서 분석 리포트 생성 완료
 
-[ ] 화면 기능 연동
+[✅] 화면 기능 연동 - ResultsFragment, DetailsFragment에서 연동 완료
 
-[ ] 분석 결과를 1단계에서 설계한 UI(요약 + 목록)에 바인딩
+[✅] 분석 결과를 1단계에서 설계한 UI(요약 + 목록)에 바인딩 - displayAnalysisResult, displayAnalysisDetails 함수로 완료
 
-[ ] 전체 성분 목록에서 특정 아이템 터치 시, (데이터만 전달하며) 상세/채팅 화면으로 이동하는 기능 구현
+[✅] 전체 성분 목록에서 특정 아이템 터치 시, (데이터만 전달하며) 상세/채팅 화면으로 이동하는 기능 구현 - DetailsFragment의 IngredientsAdapter에서 구현 완료
 
 Phase 3: RAG 백엔드 구축 (Python / LangChain)
 
-[ ] 기본 환경 설정
+[✅] 기본 환경 설정 - backend 폴더, requirements.txt, venv 설정 완료
 
-[ ] Python (FastAPI/Flask) 기반 API 서버 환경 구축
+[✅] Python (FastAPI/Flask) 기반 API 서버 환경 구축 - Flask 기반 rag_server.py 완료
 
-[ ] ingredients.json 및 추가 전문 자료(논문, 기사) 수집
+[⚠️] ingredients.json 및 추가 전문 자료(논문, 기사) 수집 - ingredients.json은 완료, 추가 자료는 미완료
 
-[ ] Vector DB 구축
+[✅] Vector DB 구축 - ChromaDB 사용, 완료
 
-[ ] 수집된 데이터를 임베딩하여 ChromaDB Vector Store 구축
+[✅] 수집된 데이터를 임베딩하여 ChromaDB Vector Store 구축 - create_vectorstore 함수로 완료
 
-[ ] LangChain 파이프라인 구현
+[✅] LangChain 파이프라인 구현 - EnterpriseRAG 클래스로 완료
 
-[ ] LangChain을 활용한 RAG 체인(Chain) 구현 (Retrieve-Augment-Generate)
+[✅] LangChain을 활용한 RAG 체인(Chain) 구현 (Retrieve-Augment-Generate) - create_qa_runnable 함수로 완료
 
-[ ] Chat History (대화 기록) 연동 로직 구현 (세션 기반)
+[❌] Chat History (대화 기록) 연동 로직 구현 (세션 기반) - v1.0 범위에서 제외됨
 
-[ ] Few-shot 기법을 활용한 프롬프트 템플릿 엔지니어링
+[✅] Few-shot 기법을 활용한 프롬프트 템플릿 엔지니어링 - create_few_shot_prompt 함수로 완료
 
-[ ] API 개발 및 평가
+[✅] API 개발 및 평가 - /analyze_product, /search, /chat/history 등 엔드포인트 완료, evaluation.py 모듈 완료
 
-[ ] /api/v1/chat 엔드포인트 개발 (Request: query, session_id / Response: answer, session_id)
-
-[ ] (✨신규) LLM Evaluation (RAGAs 등)을 통한 AI 답변 품질 평가 체계 구축
+[✅] /search 엔드포인트 개발 (Request: query / Response: answer) - 구현 완료 (채팅 기능 없이 단일 질문만 지원)
 
 Phase 4: AI 기능 연동 (Android-Backend)
 
-[ ] AI 연동 모듈 개발 (Android)
+[✅] AI 연동 모듈 개발 (Android) - RetrofitClient, RAGApiService 완료
 
-[ ] Retrofit/OkHttp 등 RAG 백엔드 API 연동을 위한 네트워크 모듈 설정
+[✅] Retrofit/OkHttp 등 RAG 백엔드 API 연동을 위한 네트워크 모듈 설정 - RetrofitClient.kt 완료
 
-[ ] 상세/채팅 화면 진입 시, 성분명을 1차 쿼리로 RAG 백엔드(/chat)를 호출하는 기능 구현
+[✅] 상세 화면 진입 시, 성분명을 기반으로 RAG 백엔드(/analyze_product)를 호출하는 기능 구현 - 완료
 
-[ ] AI 채팅 화면 기능 구현 (Android)
+[✅] RAG API 응답 결과를 상세 정보 UI에 표시 - 성분 상세 화면(ResultsFragment) UI 완료 (채팅 UI는 v1.0 범위에서 제외됨)
 
-[ ] RAG API 응답 결과를 채팅 UI에 표시
-
-[ ] (✨신규) 세션(session_id) 관리 로직 구현 (대화 맥락 유지)
-
-[ ] (✨신규) 사용자가 채팅창에 후속 질문 입력 시, API를 재호출하고 응답을 표시하는 기능 구현
-
-[ ] 로딩 및 오류 상태 처리 UI 구현
+[⚠️] 로딩 및 오류 상태 처리 UI 구현 - SharedViewModel에 상태는 있지만 UI 표시는 부분적 완료
 
 Phase 5: 고도화 및 테스트 (2주)
 

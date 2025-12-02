@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
@@ -52,11 +53,28 @@ class ScanFragment : Fragment() {
             )
         }
         
+        // 촬영 버튼 (실제 카메라 촬영)
         view.findViewById<View>(R.id.captureButton).setOnClickListener {
             takePhoto()
         }
         
-        // 테스트 버튼들 설정
+        // 테스트 모드 토글
+        val testModeToggle = view.findViewById<TextView>(R.id.testModeToggle)
+        val testButtonsContainer = view.findViewById<View>(R.id.testButtonsContainer)
+        var isTestModeExpanded = false
+        
+        testModeToggle?.setOnClickListener {
+            isTestModeExpanded = !isTestModeExpanded
+            if (isTestModeExpanded) {
+                testButtonsContainer?.visibility = View.VISIBLE
+                testModeToggle.text = "🔧 개발자 테스트 모드 (클릭하여 접기)"
+            } else {
+                testButtonsContainer?.visibility = View.GONE
+                testModeToggle.text = "🔧 개발자 테스트 모드 (클릭하여 펼치기)"
+            }
+        }
+        
+        // 테스트 버튼들 설정 (assets 이미지 사용)
         view.findViewById<View>(R.id.testButton1).setOnClickListener {
             testOCRFromAssets("OCR_cosmetic_sample/image_sample.jpg")
         }
@@ -128,21 +146,44 @@ class ScanFragment : Fragment() {
     }
     
     private fun takePhoto() {
-        val imageCapture = imageCapture ?: return
+        val imageCapture = imageCapture ?: run {
+            Toast.makeText(
+                requireContext(),
+                "카메라가 준비되지 않았습니다. 잠시 후 다시 시도해주세요.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        
+        // 촬영 시작 알림
+        Toast.makeText(
+            requireContext(),
+            "📸 촬영 중...",
+            Toast.LENGTH_SHORT
+        ).show()
         
         imageCapture.takePicture(
             executor,
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(imageProxy: ImageProxy) {
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "✅ 촬영 완료! OCR 처리 중...",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     processImage(imageProxy)
                 }
                 
                 override fun onError(exception: ImageCaptureException) {
-                    Toast.makeText(
-                        requireContext(),
-                        "사진 촬영 실패: ${exception.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "❌ 사진 촬영 실패: ${exception.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             }
         )
@@ -165,24 +206,33 @@ class ScanFragment : Fragment() {
                     if (recognizedText.isNotEmpty()) {
                         // 상세 화면으로 텍스트 전달
                         activity?.runOnUiThread {
+                            Toast.makeText(
+                                requireContext(),
+                                "✅ 텍스트 인식 완료! 분석 화면으로 이동합니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             sharedViewModel.recognizedText.value = recognizedText
-                            findNavController().navigate(R.id.action_nav_scan_to_nav_details)
+                            findNavController().navigate(R.id.action_nav_scan_to_nav_results)
                         }
                     } else {
-                        Toast.makeText(
-                            requireContext(),
-                            "텍스트를 인식할 수 없습니다. 다시 촬영해주세요.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        activity?.runOnUiThread {
+                            Toast.makeText(
+                                requireContext(),
+                                "❌ 텍스트를 인식할 수 없습니다.\n\n다시 촬영해주세요.\n💡 조명이 밝고 글자가 선명한지 확인하세요.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }
                 .addOnFailureListener { e ->
                     imageProxy.close()
-                    Toast.makeText(
-                        requireContext(),
-                        "텍스트 인식 실패: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "❌ 텍스트 인식 실패: ${e.message}\n\n다시 시도해주세요.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
         } else {
             imageProxy.close()
@@ -203,7 +253,7 @@ class ScanFragment : Fragment() {
                 
                 Toast.makeText(
                     requireContext(),
-                    "OCR 처리 중...",
+                    "🧪 테스트 이미지 OCR 처리 중...",
                     Toast.LENGTH_SHORT
                 ).show()
                 
@@ -212,13 +262,18 @@ class ScanFragment : Fragment() {
                         val recognizedText = visionText.text
                         
                         if (recognizedText.isNotEmpty()) {
+                            Toast.makeText(
+                                requireContext(),
+                                "✅ 테스트 이미지 인식 완료!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             // 상세 화면으로 텍스트 전달
                             sharedViewModel.recognizedText.value = recognizedText
-                            findNavController().navigate(R.id.action_nav_scan_to_nav_details)
+                            findNavController().navigate(R.id.action_nav_scan_to_nav_results)
                         } else {
                             Toast.makeText(
                                 requireContext(),
-                                "텍스트를 인식할 수 없습니다.",
+                                "❌ 텍스트를 인식할 수 없습니다.",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -226,7 +281,7 @@ class ScanFragment : Fragment() {
                     .addOnFailureListener { e ->
                         Toast.makeText(
                             requireContext(),
-                            "OCR 처리 실패: ${e.message}",
+                            "❌ OCR 처리 실패: ${e.message}",
                             Toast.LENGTH_SHORT
                         ).show()
                     }

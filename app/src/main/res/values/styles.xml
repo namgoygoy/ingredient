@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- BottomNavigationView 스타일 - 그림자 효과 완전 제거 -->
+    <style name="NoShadowBottomNavigation" parent="Widget.Material3.BottomNavigationView">
+        <item name="elevation">0dp</item>
+        <item name="android:outlineProvider">none</item>
+    </style>
+</resources>
+

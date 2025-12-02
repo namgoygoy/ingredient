@@ -24,6 +24,11 @@ class DetailsFragment : Fragment() {
     private var isIngredientListExpanded = false
     private lateinit var ingredientsAdapter: IngredientsAdapter
     
+    // Gemini AI Service
+    private val geminiService by lazy {
+        GeminiService(BuildConfig.GEMINI_API_KEY)
+    }
+    
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,13 +51,17 @@ class DetailsFragment : Fragment() {
         val ingredientsRecyclerView = view.findViewById<RecyclerView>(R.id.ingredientsRecyclerView)
         
         // RecyclerView 설정
-        ingredientsAdapter = IngredientsAdapter { ingredient ->
-            // 성분 클릭 시 ResultsFragment로 이동하면서 선택된 성분 전달
-            val bundle = Bundle().apply {
-                putString("selectedIngredient", ingredient)
+        ingredientsAdapter = IngredientsAdapter(
+            goodMatches = emptySet(),
+            badMatches = emptySet(),
+            onIngredientClick = { ingredient ->
+                // 성분 클릭 시 ResultsFragment로 이동하면서 선택된 성분 전달
+                val bundle = Bundle().apply {
+                    putString("selectedIngredient", ingredient)
+                }
+                findNavController().navigate(R.id.action_nav_results_to_nav_details, bundle)
             }
-            findNavController().navigate(R.id.action_nav_details_to_nav_results, bundle)
-        }
+        )
         
         ingredientsRecyclerView?.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -75,13 +84,23 @@ class DetailsFragment : Fragment() {
         sharedViewModel.analysisResult.observe(viewLifecycleOwner) { result ->
             result?.let {
                 displayAnalysisDetails(view, it)
+                // 성분 색상 업데이트
+                updateIngredientColors(it)
             }
         }
         
         // 인식된 텍스트에서 성분 파싱 및 분석 수행
+        // parsedIngredients가 이미 있으면 재사용 (ResultsFragment에서 파싱된 것)
+        sharedViewModel.parsedIngredients.observe(viewLifecycleOwner) { ingredients ->
+            if (ingredients.isNotEmpty()) {
+                ingredientsAdapter.submitList(ingredients)
+            }
+        }
+        
+        // 인식된 텍스트가 있고 parsedIngredients가 없으면 파싱 수행
         sharedViewModel.recognizedText.observe(viewLifecycleOwner) { recognizedText ->
-            if (recognizedText.isNotEmpty()) {
-                // ResultsFragment의 parseIngredients 함수를 사용하여 성분 파싱
+            if (recognizedText.isNotEmpty() && sharedViewModel.parsedIngredients.value.isNullOrEmpty()) {
+                // ResultsFragment와 동일한 방식으로 성분 파싱
                 val ingredients = parseIngredients(recognizedText)
                 if (ingredients.isNotEmpty()) {
                     sharedViewModel.parsedIngredients.value = ingredients
@@ -116,6 +135,7 @@ class DetailsFragment : Fragment() {
     
     /**
      * 인식된 텍스트에서 성분 리스트 추출
+     * ResultsFragment와 동일한 로직 사용
      */
     private fun parseIngredients(text: String): List<String> {
         val ingredientText = extractIngredientSection(text)
@@ -124,20 +144,31 @@ class DetailsFragment : Fragment() {
         }
         
         val ingredients = mutableListOf<String>()
+        
+        // 알파벳/숫자 코드 패턴 제거 (예: A1801290, RC023A03 등)
         val cleanedText = ingredientText.replace(Regex("\\s*[A-Z]\\d+[A-Z]?\\d*[\\s/]?[A-Z]?\\d*\\s*"), " ")
+        
+        // 1단계: 쉼표, 점, 줄바꿈으로 분리
         val parts = cleanedText.split(Regex("[,，.。\\n\\r]+"))
         
         for (part in parts) {
             var processedPart = part.trim()
+            
+            // 빈 파트는 건너뛰기
+            if (processedPart.isEmpty()) continue
+            
+            // 2단계: 공백으로 분리 (ResultsFragment와 동일)
             val words = processedPart.split(Regex("\\s+"))
             
             for (word in words) {
                 var cleaned = word.trim()
-                    .replace(Regex("[\\[\\]()]"), "")
+                    .replace(Regex("[\\[\\]()]"), "") // 대괄호, 괄호 제거
                     .trim()
                 
+                // 숫자만 있는 경우 제외
                 if (cleaned.matches(Regex("^[0-9\\-]+$"))) continue
                 
+                // 3단계: 알려진 성분명 패턴으로 분리 (OCR 오류 대응)
                 val knownIngredientPatterns = listOf(
                     "시트로넬올", "리날룰", "리모넨", "제라니올", "시트랄",
                     "하이드록시시트로넬알", "알파아이소메틸아이오논",
@@ -164,6 +195,7 @@ class DetailsFragment : Fragment() {
                     }
                 }
                 
+                // 패턴이 없으면 전체 단어를 그대로 추가
                 if (!foundPatterns && isValidIngredientName(cleaned)) {
                     ingredients.add(cleaned)
                 }
@@ -222,9 +254,13 @@ class DetailsFragment : Fragment() {
             sharedViewModel.errorMessage.value = null
             
             try {
+                // 사용자 피부 타입 가져오기
+                val userPreferences = UserPreferences(requireContext())
+                val skinType = userPreferences.getSkinType()
+                
                 val request = com.example.cosmetic.network.AnalyzeProductRequest(
                     ingredients = ingredients,
-                    skinType = "건성" // 기본 피부 타입
+                    skinType = skinType // 사용자 피부 타입 사용
                 )
                 
                 val response = withContext(Dispatchers.IO) {
@@ -239,7 +275,17 @@ class DetailsFragment : Fragment() {
                     sharedViewModel.errorMessage.value = "분석 실패: $errorMsg"
                 }
             } catch (e: Exception) {
-                sharedViewModel.errorMessage.value = "네트워크 오류: ${e.message}"
+                // RAG 서버 연결 실패 시 에러 메시지 표시
+                val errorMsg = when {
+                    e.message?.contains("UnknownHostException") == true || 
+                    e.message?.contains("Unable to resolve host") == true -> 
+                        "서버에 연결할 수 없습니다.\n\n확인 사항:\n1. 인터넷 연결 확인\n2. ngrok 터널이 실행 중인지 확인\n3. ngrok 주소가 변경되지 않았는지 확인"
+                    e.message?.contains("ConnectException") == true || 
+                    e.message?.contains("ECONNREFUSED") == true -> 
+                        "서버에 연결할 수 없습니다. ngrok 터널이 실행 중인지 확인해주세요."
+                    else -> "네트워크 오류: ${e.message}"
+                }
+                sharedViewModel.errorMessage.value = errorMsg
                 e.printStackTrace()
             } finally {
                 sharedViewModel.isLoading.value = false
@@ -251,10 +297,8 @@ class DetailsFragment : Fragment() {
      * 분석 결과 상세 정보를 UI에 표시
      */
     private fun displayAnalysisDetails(view: View, result: com.example.cosmetic.network.AnalyzeProductResponse) {
-        // AI 분석 요약
-        view.findViewById<TextView>(R.id.aiSummaryText)?.let {
-            it.text = result.analysisReport
-        }
+        // AI 분석 요약 - Gemini로 더 풍부한 정보 생성
+        generateEnhancedAnalysisSummary(view, result)
         
         // 추천 피부 타입 (중복 제거)
         view.findViewById<TextView>(R.id.recommendedSkinTypes)?.let {
@@ -339,9 +383,62 @@ class DetailsFragment : Fragment() {
     }
     
     /**
+     * RAG 서버 리포트 우선 사용, 부족할 경우에만 Gemini로 보완
+     */
+    private fun generateEnhancedAnalysisSummary(view: View, result: com.example.cosmetic.network.AnalyzeProductResponse) {
+        // 서버 리포트가 충분히 상세하면 그대로 사용
+        if (result.analysisReport.length > 100 && 
+            !result.analysisReport.contains("분석 중") && 
+            !result.analysisReport.contains("오류")) {
+            view.findViewById<TextView>(R.id.aiSummaryText)?.text = result.analysisReport
+            return
+        }
+        
+        // 서버 리포트가 부족할 경우에만 Gemini로 개선
+        lifecycleScope.launch {
+            try {
+                view.findViewById<TextView>(R.id.aiSummaryText)?.text = 
+                    result.analysisReport.ifEmpty { "AI가 분석을 생성하는 중..." }
+                
+                val ingredients = sharedViewModel.parsedIngredients.value ?: emptyList()
+                val goodMatches = result.goodMatches.distinctBy { it.name }.map { it.name }
+                val badMatches = result.badMatches.distinctBy { it.name }.map { it.name }
+                
+                val enhancedSummary = geminiService.enhanceProductAnalysisSummary(
+                    serverReport = result.analysisReport,
+                    ingredients = ingredients,
+                    goodMatches = goodMatches,
+                    badMatches = badMatches
+                )
+                
+                view.findViewById<TextView>(R.id.aiSummaryText)?.text = enhancedSummary
+                
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // 에러 시 서버 리포트 사용
+                view.findViewById<TextView>(R.id.aiSummaryText)?.text = 
+                    result.analysisReport.ifEmpty { 
+                        "성분 기반으로 볼 때, 이 제품은 다양한 보습 및 진정 성분을 포함하고 있습니다." 
+                    }
+            }
+        }
+    }
+    
+    /**
+     * 성분 색상 업데이트
+     */
+    private fun updateIngredientColors(result: com.example.cosmetic.network.AnalyzeProductResponse) {
+        val goodMatches = result.goodMatches.map { it.name.lowercase() }.toSet()
+        val badMatches = result.badMatches.map { it.name.lowercase() }.toSet()
+        ingredientsAdapter.updateMatches(goodMatches, badMatches)
+    }
+    
+    /**
      * 성분 리스트 어댑터
      */
     private class IngredientsAdapter(
+        private var goodMatches: Set<String>,
+        private var badMatches: Set<String>,
         private val onIngredientClick: (String) -> Unit
     ) : RecyclerView.Adapter<IngredientsAdapter.IngredientViewHolder>() {
         
@@ -349,6 +446,12 @@ class DetailsFragment : Fragment() {
         
         fun submitList(newIngredients: List<String>) {
             ingredients = newIngredients
+            notifyDataSetChanged()
+        }
+        
+        fun updateMatches(newGoodMatches: Set<String>, newBadMatches: Set<String>) {
+            goodMatches = newGoodMatches
+            badMatches = newBadMatches
             notifyDataSetChanged()
         }
         
@@ -360,7 +463,7 @@ class DetailsFragment : Fragment() {
         
         override fun onBindViewHolder(holder: IngredientViewHolder, position: Int) {
             val ingredient = ingredients[position]
-            holder.bind(ingredient)
+            holder.bind(ingredient, goodMatches, badMatches)
         }
         
         override fun getItemCount(): Int = ingredients.size
@@ -368,10 +471,27 @@ class DetailsFragment : Fragment() {
         inner class IngredientViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val textView: TextView = itemView.findViewById(android.R.id.text1)
             
-            fun bind(ingredient: String) {
+            fun bind(ingredient: String, goodMatches: Set<String>, badMatches: Set<String>) {
                 textView.text = ingredient
                 textView.textSize = 12f
-                textView.setTextColor(itemView.context.getColor(R.color.text_muted))
+                
+                // 성분 색상 결정
+                val ingredientLower = ingredient.lowercase()
+                val color = when {
+                    goodMatches.contains(ingredientLower) -> {
+                        // 좋은 성분: 파란색
+                        itemView.context.getColor(R.color.ingredient_good)
+                    }
+                    badMatches.contains(ingredientLower) -> {
+                        // 주의 성분: 빨간색
+                        itemView.context.getColor(R.color.ingredient_bad)
+                    }
+                    else -> {
+                        // 기본: 회색
+                        itemView.context.getColor(R.color.text_muted)
+                    }
+                }
+                textView.setTextColor(color)
                 
                 // 패딩 설정 (dp를 픽셀로 변환)
                 val paddingDp = 8

@@ -3,6 +3,13 @@
     <style name="Base.Theme.Cosmetic" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        
+        <!-- Surface 색상 명시적 설정 (바텀 네비게이션 배경) -->
+        <item name="colorSurface">@color/bg_card</item>
+        
+        <!-- 텍스트 색상 명시적 설정 -->
+        <item name="android:textColorPrimary">@color/text_dark</item>
+        <item name="android:textColorSecondary">@color/text_muted</item>
     </style>
 
     <style name="Theme.Cosmetic" parent="Base.Theme.Cosmetic" />

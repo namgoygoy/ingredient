@@ -1,4 +1,8 @@
-# Flask 웹 프레임워크
+# FastAPI 웹 프레임워크 (비동기 처리 지원)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0  # ASGI 서버
+
+# Flask 웹 프레임워크 (기존 버전 호환성 유지)
 flask>=2.3.0
 flask-cors>=4.0.0
 

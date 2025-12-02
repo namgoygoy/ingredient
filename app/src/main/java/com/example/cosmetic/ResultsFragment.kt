@@ -5,8 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -17,14 +19,23 @@ import com.example.cosmetic.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.IOException
 
 class ResultsFragment : Fragment() {
     
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val apiService = RetrofitClient.apiService
+    private lateinit var userPreferences: UserPreferences
     
-    // 기본 피부 타입 (나중에 사용자 선택으로 변경 가능)
-    private val defaultSkinType = "건성"
+    // ingredients.json 데이터 캐시
+    private var ingredientsData: JSONArray? = null
+    
+    // Gemini AI Service
+    private val geminiService by lazy {
+        GeminiService(BuildConfig.GEMINI_API_KEY)
+    }
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +48,11 @@ class ResultsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        // 뒤로가기 버튼
+        view.findViewById<ImageView>(R.id.backButton)?.setOnClickListener {
+            findNavController().navigateUp()
+        }
+        
         // 선택된 성분 정보 표시
         val selectedIngredient = arguments?.getString("selectedIngredient") ?: ""
         
@@ -45,6 +61,8 @@ class ResultsFragment : Fragment() {
             displayIngredientDetails(view, selectedIngredient)
         } else {
             // 선택된 성분이 없으면 전체 제품 분석 표시 (이전 로직)
+            showProductAnalysisMode(view)
+            
             sharedViewModel.recognizedText.observe(viewLifecycleOwner) { recognizedText ->
                 if (recognizedText.isNotEmpty()) {
                     val ingredients = parseIngredients(recognizedText)
@@ -86,8 +104,49 @@ class ResultsFragment : Fragment() {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
             }
         }
+    }
+    
+    /**
+     * 전체 제품 분석 모드로 UI 전환
+     */
+    private fun showProductAnalysisMode(view: View) {
+        // 성분 상세 정보 카드 숨김
+        view.findViewById<CardView>(R.id.ingredientDetailCard)?.visibility = View.GONE
         
-        // 상세보기 버튼은 이제 필요 없음 (DetailsFragment에서 이미 본 상태)
+        // AI 분석 리포트 섹션 표시
+        view.findViewById<TextView>(R.id.aiAnalysisTitle)?.visibility = View.VISIBLE
+        view.findViewById<TextView>(R.id.aiAnalysisReport)?.visibility = View.VISIBLE
+        
+        // 좋은 성분 섹션 표시
+        view.findViewById<TextView>(R.id.goodMatchesTitle)?.visibility = View.VISIBLE
+        
+        // 주의 성분 섹션 표시
+        view.findViewById<TextView>(R.id.badMatchesTitle)?.visibility = View.VISIBLE
+        
+        // 상세보기 버튼 표시
+        view.findViewById<Button>(R.id.viewDetailsButton)?.visibility = View.VISIBLE
+    }
+    
+    /**
+     * 성분 상세 정보 모드로 UI 전환
+     */
+    private fun showIngredientDetailMode(view: View) {
+        // 성분 상세 정보 카드 표시
+        view.findViewById<CardView>(R.id.ingredientDetailCard)?.visibility = View.VISIBLE
+        
+        // AI 분석 리포트 섹션 숨김
+        view.findViewById<TextView>(R.id.aiAnalysisTitle)?.visibility = View.GONE
+        view.findViewById<TextView>(R.id.aiAnalysisReport)?.visibility = View.GONE
+        
+        // 좋은 성분 섹션 숨김
+        view.findViewById<TextView>(R.id.goodMatchesTitle)?.visibility = View.GONE
+        view.findViewById<TextView>(R.id.goodMatches)?.visibility = View.GONE
+        
+        // 주의 성분 섹션 숨김
+        view.findViewById<TextView>(R.id.badMatchesTitle)?.visibility = View.GONE
+        view.findViewById<TextView>(R.id.badMatches)?.visibility = View.GONE
+        
+        // 상세보기 버튼 숨김
         view.findViewById<Button>(R.id.viewDetailsButton)?.visibility = View.GONE
     }
     
@@ -95,9 +154,13 @@ class ResultsFragment : Fragment() {
      * 선택된 성분의 상세 정보 표시
      */
     private fun displayIngredientDetails(view: View, ingredientName: String) {
+        // UI 모드 전환
+        showIngredientDetailMode(view)
+        
         // 선택된 성분명 표시
         view.findViewById<TextView>(R.id.productName)?.text = "성분 상세 정보"
         view.findViewById<TextView>(R.id.productIngredients)?.text = ingredientName
+        view.findViewById<TextView>(R.id.ingredientName)?.text = ingredientName
         
         // 선택된 성분 하나만으로 분석 수행
         analyzeProduct(listOf(ingredientName))
@@ -266,9 +329,15 @@ class ResultsFragment : Fragment() {
             sharedViewModel.errorMessage.value = null
             
             try {
+                // 사용자 피부 타입 가져오기
+                if (!::userPreferences.isInitialized) {
+                    userPreferences = UserPreferences(requireContext())
+                }
+                val skinType = userPreferences.getSkinType()
+                
                 val request = AnalyzeProductRequest(
                     ingredients = ingredients,
-                    skinType = defaultSkinType
+                    skinType = skinType
                 )
                 
                 val response = withContext(Dispatchers.IO) {
@@ -283,7 +352,16 @@ class ResultsFragment : Fragment() {
                     sharedViewModel.errorMessage.value = "분석 실패: $errorMsg"
                 }
             } catch (e: Exception) {
-                sharedViewModel.errorMessage.value = "네트워크 오류: ${e.message}"
+                val errorMsg = when {
+                    e.message?.contains("UnknownHostException") == true || 
+                    e.message?.contains("Unable to resolve host") == true -> 
+                        "서버에 연결할 수 없습니다.\n\n확인 사항:\n1. 인터넷 연결 확인\n2. ngrok 터널이 실행 중인지 확인\n3. ngrok 주소가 변경되지 않았는지 확인"
+                    e.message?.contains("ConnectException") == true || 
+                    e.message?.contains("ECONNREFUSED") == true -> 
+                        "서버에 연결할 수 없습니다. ngrok 터널이 실행 중인지 확인해주세요."
+                    else -> "네트워크 오류: ${e.message}"
+                }
+                sharedViewModel.errorMessage.value = errorMsg
                 e.printStackTrace()
             } finally {
                 sharedViewModel.isLoading.value = false
@@ -295,6 +373,290 @@ class ResultsFragment : Fragment() {
      * 분석 결과를 UI에 표시
      */
     private fun displayAnalysisResult(view: View, result: AnalyzeProductResponse) {
+        // 선택된 성분 정보 확인
+        val selectedIngredient = arguments?.getString("selectedIngredient") ?: ""
+        
+        if (selectedIngredient.isNotEmpty()) {
+            // 성분 상세 정보 모드: 개별 성분 정보 표시
+            displayIngredientDetailInfo(view, result, selectedIngredient)
+        } else {
+            // 제품 분석 모드: 전체 제품 분석 정보 표시
+            displayProductAnalysisInfo(view, result)
+        }
+    }
+    
+     /**
+      * 성분 상세 정보 표시 (개별 성분 모드)
+      */
+     private fun displayIngredientDetailInfo(view: View, result: AnalyzeProductResponse, ingredientName: String) {
+         lifecycleScope.launch {
+             // 좋은 성분 목록에서 해당 성분 찾기
+             val goodMatch = result.goodMatches.firstOrNull { 
+                 it.name.contains(ingredientName, ignoreCase = true) || 
+                 ingredientName.contains(it.name, ignoreCase = true) 
+             }
+             
+             // 주의 성분 목록에서 해당 성분 찾기
+             val badMatch = result.badMatches.firstOrNull { 
+                 it.name.contains(ingredientName, ignoreCase = true) || 
+                 ingredientName.contains(it.name, ignoreCase = true) 
+             }
+             
+             // 성분명 표시
+             view.findViewById<TextView>(R.id.ingredientName)?.text = ingredientName
+             
+             // 기능(목적) 표시 - ingredients.json의 purpose 배열 활용
+             val purpose = loadIngredientPurpose(ingredientName)
+             
+             if (purpose.isNotEmpty()) {
+                 view.findViewById<TextView>(R.id.ingredientPurpose)?.text = purpose
+             } else {
+                 // ingredients.json에 없으면 Gemini로 생성
+                 view.findViewById<TextView>(R.id.ingredientPurpose)?.text = "정보를 생성하는 중..."
+                 val generatedPurpose = try {
+                     geminiService.generateIngredientPurpose(ingredientName)
+                 } catch (e: Exception) {
+                     e.printStackTrace()
+                     "정보를 불러올 수 없습니다."
+                 }
+                 view.findViewById<TextView>(R.id.ingredientPurpose)?.text = generatedPurpose
+             }
+             
+             // 피부 타입 적합성 표시
+             var suitability = when {
+                 goodMatch != null && badMatch != null -> {
+                     // 좋은 점과 주의할 점이 모두 있는 경우
+                     val goodSkinTypes = extractSkinTypesFromPurpose(goodMatch.purpose)
+                     val badSkinTypes = extractSkinTypesFromDescription(badMatch.description)
+                     "권장: $goodSkinTypes, 주의: $badSkinTypes"
+                 }
+                 goodMatch != null -> {
+                     // 좋은 점만 있는 경우
+                     val goodSkinTypes = extractSkinTypesFromPurpose(goodMatch.purpose)
+                     "권장: $goodSkinTypes"
+                 }
+                 badMatch != null -> {
+                     // 주의할 점만 있는 경우
+                     val badSkinTypes = extractSkinTypesFromDescription(badMatch.description)
+                     "주의: $badSkinTypes"
+                 }
+                 else -> null
+             }
+             
+             if (suitability == null) {
+                 // RAG 서버에 정보가 없으면 Gemini로 생성
+                 view.findViewById<TextView>(R.id.ingredientSuitability)?.text = "정보를 생성하는 중..."
+                 suitability = try {
+                     geminiService.generateSkinTypeSuitability(ingredientName)
+                 } catch (e: Exception) {
+                     e.printStackTrace()
+                     "모든 피부 타입"
+                 }
+             }
+             view.findViewById<TextView>(R.id.ingredientSuitability)?.text = suitability
+             
+             // ingredients.json에서 description 로드하여 표시 (없으면 Gemini로 생성)
+             loadIngredientDescription(view, ingredientName)
+         }
+     }
+    
+     /**
+      * ingredients.json에서 purpose 배열을 로드하여 한국어로 변환
+      */
+     private suspend fun loadIngredientPurpose(ingredientName: String): String {
+         return withContext(Dispatchers.IO) {
+             try {
+                 // ingredients.json 로드 (캐시가 있으면 재사용)
+                 if (ingredientsData == null) {
+                     ingredientsData = loadIngredientsJson()
+                 }
+                 
+                 // 성분 정보 찾기
+                 val ingredientInfo = findIngredientByName(ingredientName)
+                 
+                 if (ingredientInfo != null) {
+                     val purposeArray = ingredientInfo.optJSONArray("purpose")
+                     if (purposeArray != null && purposeArray.length() > 0) {
+                         // purpose 배열을 한국어로 변환
+                         val purposes = mutableListOf<String>()
+                         for (i in 0 until purposeArray.length()) {
+                             val englishPurpose = purposeArray.getString(i)
+                             val koreanPurpose = translatePurposeToKorean(englishPurpose)
+                             purposes.add(koreanPurpose)
+                         }
+                         return@withContext purposes.joinToString(", ")
+                     }
+                 }
+                 
+                 return@withContext ""
+             } catch (e: Exception) {
+                 e.printStackTrace()
+                 return@withContext ""
+             }
+         }
+     }
+     
+     /**
+      * 영문 purpose를 한국어로 변환
+      */
+     private fun translatePurposeToKorean(englishPurpose: String): String {
+         return when (englishPurpose.lowercase()) {
+             "moisturizer", "humectant" -> "보습제"
+             "exfoliant" -> "각질제거제"
+             "solvent" -> "용매"
+             "fragrance", "perfuming" -> "향료"
+             "antioxidant" -> "항산화제"
+             "emulsifier" -> "유화제"
+             "thickener" -> "증점제"
+             "surfactant" -> "계면활성제"
+             "preservative" -> "방부제"
+             "emollient" -> "연화제"
+             "sunscreen", "uv filter" -> "자외선차단제"
+             "colorant" -> "착색제"
+             "buffering" -> "완충제"
+             "chelating" -> "킬레이트제"
+             "antimicrobial" -> "항균제"
+             "skin conditioning" -> "피부컨디셔닝"
+             "viscosity controlling" -> "점도조절제"
+             "absorbent" -> "흡수제"
+             "astringent" -> "수렴제"
+             "soothing" -> "진정제"
+             "whitening" -> "미백제"
+             "anti-acne" -> "여드름케어"
+             else -> englishPurpose // 매핑되지 않은 경우 원문 표시
+         }
+     }
+     
+     /**
+      * ingredients.json을 로드하여 성분의 description 표시
+      * 없으면 Gemini AI로 생성
+      */
+     private fun loadIngredientDescription(view: View, ingredientName: String) {
+         lifecycleScope.launch {
+             try {
+                 // ingredients.json 로드 (캐시가 있으면 재사용)
+                 if (ingredientsData == null) {
+                     ingredientsData = withContext(Dispatchers.IO) {
+                         loadIngredientsJson()
+                     }
+                 }
+                 
+                 // 성분 정보 찾기
+                 val ingredientInfo = findIngredientByName(ingredientName)
+                 
+                 if (ingredientInfo != null) {
+                     // ingredients.json에 정보가 있는 경우
+                     val description = ingredientInfo.optString("description", "")
+                     
+                     if (description.isNotEmpty()) {
+                         // 영문 description을 한국어로 번역
+                         view.findViewById<TextView>(R.id.aiExplanation)?.text = "설명을 생성하는 중..."
+                         
+                         val koreanDescription = try {
+                             geminiService.translateIngredientDescription(ingredientName, description)
+                         } catch (e: Exception) {
+                             e.printStackTrace()
+                             // 번역 실패 시 Gemini로 새로 생성
+                             geminiService.generateIngredientDescription(ingredientName)
+                         }
+                         
+                         view.findViewById<TextView>(R.id.aiExplanation)?.text = koreanDescription
+                     } else {
+                         // description이 비어있으면 Gemini로 생성
+                         generateDescriptionWithGemini(view, ingredientName)
+                     }
+                 } else {
+                     // ingredients.json에 없는 성분 -> Gemini로 생성
+                     generateDescriptionWithGemini(view, ingredientName)
+                 }
+                 
+             } catch (e: Exception) {
+                 // 에러 발생 시 Gemini로 fallback
+                 e.printStackTrace()
+                 generateDescriptionWithGemini(view, ingredientName)
+             }
+         }
+     }
+     
+     /**
+      * Gemini AI로 성분 설명 생성
+      */
+     private fun generateDescriptionWithGemini(view: View, ingredientName: String) {
+         lifecycleScope.launch {
+             try {
+                 view.findViewById<TextView>(R.id.aiExplanation)?.text = "AI가 정보를 생성하는 중..."
+                 
+                 val description = geminiService.generateIngredientDescription(ingredientName)
+                 view.findViewById<TextView>(R.id.aiExplanation)?.text = description
+                 
+             } catch (e: Exception) {
+                 view.findViewById<TextView>(R.id.aiExplanation)?.text = 
+                     "해당 성분에 대한 정보를 생성할 수 없습니다."
+                 e.printStackTrace()
+             }
+         }
+     }
+    
+    /**
+     * ingredients.json 파일을 assets에서 로드
+     */
+    private fun loadIngredientsJson(): JSONArray {
+        val jsonString = try {
+            requireContext().assets.open("ingredients.json").bufferedReader().use { it.readText() }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            "[]"
+        }
+        return JSONArray(jsonString)
+    }
+    
+    /**
+     * 성분명으로 ingredients.json에서 성분 정보 찾기
+     */
+    private fun findIngredientByName(ingredientName: String): JSONObject? {
+        val data = ingredientsData ?: return null
+        
+        // 성분명 정규화 (공백 제거, 소문자 변환)
+        val normalizedSearchName = ingredientName.trim().lowercase().replace(" ", "")
+        
+        for (i in 0 until data.length()) {
+            val item = data.getJSONObject(i)
+            val korName = item.optString("INGR_KOR_NAME", "")
+            val engName = item.optString("INGR_ENG_NAME", "")
+            
+            // 한국어 또는 영어 이름으로 정확 매칭
+            val normalizedKorName = korName.lowercase().replace(" ", "")
+            val normalizedEngName = engName.lowercase().replace(" ", "")
+            
+            if (normalizedKorName == normalizedSearchName || normalizedEngName == normalizedSearchName) {
+                return item
+            }
+        }
+        
+        // 정확한 매칭이 없으면 부분 매칭 시도
+        for (i in 0 until data.length()) {
+            val item = data.getJSONObject(i)
+            val korName = item.optString("INGR_KOR_NAME", "")
+            val engName = item.optString("INGR_ENG_NAME", "")
+            
+            val normalizedKorName = korName.lowercase().replace(" ", "")
+            val normalizedEngName = engName.lowercase().replace(" ", "")
+            
+            if (normalizedKorName.contains(normalizedSearchName) || 
+                normalizedSearchName.contains(normalizedKorName) ||
+                normalizedEngName.contains(normalizedSearchName) || 
+                normalizedSearchName.contains(normalizedEngName)) {
+                return item
+            }
+        }
+        
+        return null
+    }
+    
+    /**
+     * 전체 제품 분석 정보 표시 (제품 분석 모드)
+     */
+    private fun displayProductAnalysisInfo(view: View, result: AnalyzeProductResponse) {
         // 분석 리포트 표시
         view.findViewById<TextView>(R.id.aiAnalysisReport)?.let {
             it.text = result.analysisReport
@@ -329,6 +691,50 @@ class ResultsFragment : Fragment() {
                 badMatchesView.visibility = View.GONE
             }
         }
+    }
+    
+    /**
+     * Purpose에서 피부 타입 추출
+     */
+    private fun extractSkinTypesFromPurpose(purpose: String): String {
+        val skinTypes = mutableListOf<String>()
+        
+        if (purpose.contains("지성", ignoreCase = true) || purpose.contains("oily", ignoreCase = true)) {
+            skinTypes.add("지성")
+        }
+        if (purpose.contains("건성", ignoreCase = true) || purpose.contains("dry", ignoreCase = true)) {
+            skinTypes.add("건성")
+        }
+        if (purpose.contains("민감성", ignoreCase = true) || purpose.contains("sensitive", ignoreCase = true)) {
+            skinTypes.add("민감성")
+        }
+        if (purpose.contains("여드름", ignoreCase = true) || purpose.contains("acne", ignoreCase = true)) {
+            skinTypes.add("여드름성")
+        }
+        
+        return if (skinTypes.isNotEmpty()) skinTypes.joinToString(", ") else "모든 피부"
+    }
+    
+    /**
+     * Description에서 피부 타입 추출
+     */
+    private fun extractSkinTypesFromDescription(description: String): String {
+        val skinTypes = mutableListOf<String>()
+        
+        if (description.contains("지성", ignoreCase = true) || description.contains("oily", ignoreCase = true)) {
+            skinTypes.add("지성")
+        }
+        if (description.contains("건성", ignoreCase = true) || description.contains("dry", ignoreCase = true)) {
+            skinTypes.add("건성")
+        }
+        if (description.contains("민감성", ignoreCase = true) || description.contains("sensitive", ignoreCase = true)) {
+            skinTypes.add("민감성")
+        }
+        if (description.contains("여드름", ignoreCase = true) || description.contains("acne", ignoreCase = true)) {
+            skinTypes.add("여드름성")
+        }
+        
+        return if (skinTypes.isNotEmpty()) skinTypes.joinToString(", ") else "일부 피부"
     }
 }
 

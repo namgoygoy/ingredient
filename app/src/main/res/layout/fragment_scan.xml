@@ -1,94 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/bg_main"
+    android:fillViewport="true">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:padding="20dp">
 
+    <!-- 타이틀 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="스캔 화면"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="20dp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="성분 목록 촬영하기"
-        android:textSize="22sp"
+        android:text="화장품 성분 스캔"
+        android:textColor="@color/text_dark"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
         android:layout_marginBottom="10dp" />
 
+    <!-- 안내 메시지 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="정확한 결과를 위해 목록이 밝고 초점이 맞았는지 확인하세요."
+        android:text="성분표를 카메라 화면에 맞추고 촬영하세요"
         android:textSize="14sp"
         android:textColor="@color/text_muted"
         android:gravity="center"
-        android:layout_marginBottom="25dp" />
+        android:layout_marginBottom="20dp" />
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/previewView"
+    <!-- 카메라 프리뷰 (더 크게) -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginBottom="30dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:layout_marginBottom="20dp">
+        
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    
+    </androidx.cardview.widget.CardView>
 
+    <!-- 촬영 팁 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="💡 팁: 밝은 조명 아래에서 성분표가 선명하게 보이도록 촬영하세요"
+        android:textSize="12sp"
+        android:textColor="@color/text_muted"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="#FFF9E6"
+        android:layout_marginBottom="15dp" />
+
+    <!-- 촬영 버튼 (더 크고 눈에 띄게) -->
     <Button
         android:id="@+id/captureButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="촬영하기"
-        android:textSize="18sp"
+        android:layout_height="60dp"
+        android:text="스캔하기"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@color/text_light"
         android:backgroundTint="@color/primary_green"
-        android:padding="16dp"
-        android:layout_marginBottom="10dp" />
+        android:layout_marginBottom="15dp" />
 
-    <LinearLayout
+    <!-- 테스트 모드 토글 -->
+    <TextView
+        android:id="@+id/testModeToggle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="10dp">
+        android:text="🔧 개발자 테스트 모드 (클릭하여 펼치기)"
+        android:textSize="12sp"
+        android:textColor="@color/text_muted"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="?attr/selectableItemBackground"
+        android:layout_marginBottom="10dp" />
+
+    <!-- 테스트 버튼 영역 (기본적으로 숨김) -->
+    <LinearLayout
+        android:id="@+id/testButtonsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
         
-        <Button
-            android:id="@+id/testButton1"
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="테스트 1"
-            android:textSize="14sp"
-            android:layout_marginEnd="5dp"
-            android:backgroundTint="@color/text_muted" />
+            android:text="테스트 이미지로 OCR 테스트"
+            android:textSize="12sp"
+            android:textColor="@color/text_muted"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
         
-        <Button
-            android:id="@+id/testButton2"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="테스트 2"
-            android:textSize="14sp"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp"
-            android:backgroundTint="@color/text_muted" />
+            android:orientation="horizontal">
+            
+            <Button
+                android:id="@+id/testButton1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="샘플 1"
+                android:textSize="12sp"
+                android:layout_marginEnd="5dp"
+                android:backgroundTint="@color/text_muted" />
+            
+            <Button
+                android:id="@+id/testButton2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="샘플 2"
+                android:textSize="12sp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:backgroundTint="@color/text_muted" />
+            
+            <Button
+                android:id="@+id/testButton3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="샘플 3"
+                android:textSize="12sp"
+                android:layout_marginStart="5dp"
+                android:backgroundTint="@color/text_muted" />
         
-        <Button
-            android:id="@+id/testButton3"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="테스트 3"
-            android:textSize="14sp"
-            android:layout_marginStart="5dp"
-            android:backgroundTint="@color/text_muted" />
+        </LinearLayout>
     
     </LinearLayout>
 
 </LinearLayout>
+
+</ScrollView>

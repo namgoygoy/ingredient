@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_main"
@@ -11,40 +12,276 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="분석 결과"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
-
-        <TextView
-            android:id="@+id/productName"
+        <!-- 헤더 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="제품명"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="5dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
 
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:contentDescription="뒤로가기"
+                android:tint="@color/text_muted" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="성분 상세"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp" />
+        </LinearLayout>
+
+        <!-- 성분 분석 섹션 -->
         <TextView
-            android:id="@+id/productIngredients"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="정제수, 글리세린, 소듐하이알루로네이트"
-            android:textSize="12sp"
-            android:textColor="@color/text_muted"
-            android:layout_marginBottom="25dp" />
+            android:text="성분 분석"
+            android:textColor="@color/text_dark"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="15dp" />
 
-        <!-- AI 분석 리포트 섹션 -->
+        <!-- 제품 정보 카드 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="15dp"
+                android:gravity="center_vertical">
+
+                <!-- 제품 플레이스홀더 아이콘 -->
+                <LinearLayout
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@color/highlight_bg"
+                    android:gravity="center"
+                    android:layout_marginEnd="15dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🧪"
+                        android:textSize="24sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/productName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="제품명"
+                        android:textColor="@color/text_dark"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="5dp" />
+
+                    <TextView
+                        android:id="@+id/productIngredients"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="정제수, 글리세린, 소듐하이알루로네이트"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_muted" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 성분 상세 정보 섹션 -->
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="성분 상세 정보"
+            android:textColor="@color/text_dark"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="15dp" />
+
+        <!-- 상세 정보 카드 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/ingredientDetailCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- 성분명 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingBottom="15dp"
+                    android:layout_marginBottom="15dp"
+                    style="?android:attr/borderlessButtonStyle">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="성분"
+                        android:textColor="@color/text_muted"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/ingredientName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="소듐하이알루로네이트"
+                        android:textColor="@color/text_dark"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/border_color"
+                    android:layout_marginBottom="15dp" />
+
+                <!-- 기능 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingBottom="15dp"
+                    android:layout_marginBottom="15dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="기능"
+                        android:textColor="@color/text_muted"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/ingredientPurpose"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="보습제"
+                        android:textColor="@color/text_dark"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/border_color"
+                    android:layout_marginBottom="15dp" />
+
+                <!-- 피부 타입 적합성 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="피부 타입 적합성"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_muted" />
+
+                    <TextView
+                        android:id="@+id/ingredientSuitability"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="모든 피부 타입"
+                        android:textColor="@color/text_dark"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- AI 간편 설명 섹션 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/highlight_bg"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="✨ AI 간편 설명"
+                    android:textColor="@color/text_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/aiExplanation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="소듐하이알루로네이트는 강력한 보습제로, 공기 중의 수분을 피부로 끌어당깁니다. 모든 피부 타입에 적합하며 모공을 막지 않고 수분을 공급합니다. 피부 탄력 유지와 잔주름 감소에 핵심적인 성분입니다."
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp"
+                    android:textColor="@color/text_dark" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- AI 분석 리포트 섹션 (전체 제품 분석일 경우 표시) -->
+        <TextView
+            android:id="@+id/aiAnalysisTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="✨ AI 종합 분석 리포트"
+            android:textColor="@color/text_dark"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="10dp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/aiAnalysisReport"
@@ -55,16 +292,20 @@
             android:padding="15dp"
             android:background="@color/highlight_bg"
             android:lineSpacingExtra="4dp"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="20dp"
+            android:visibility="gone" />
 
-        <!-- 좋은 성분 섹션 -->
+        <!-- 좋은 성분 섹션 (전체 제품 분석일 경우 표시) -->
         <TextView
+            android:id="@+id/goodMatchesTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="✅ 추천 성분"
+            android:textColor="@color/text_dark"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="10dp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/goodMatches"
@@ -77,14 +318,17 @@
             android:layout_marginBottom="20dp"
             android:visibility="gone" />
 
-        <!-- 주의 성분 섹션 -->
+        <!-- 주의 성분 섹션 (전체 제품 분석일 경우 표시) -->
         <TextView
+            android:id="@+id/badMatchesTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="⚠️ 주의 성분"
+            android:textColor="@color/text_dark"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="10dp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/badMatches"
@@ -97,7 +341,7 @@
             android:layout_marginBottom="20dp"
             android:visibility="gone" />
 
-        <!-- 상세보기 버튼 -->
+        <!-- 상세보기 버튼 (전체 제품 분석일 경우 표시) -->
         <Button
             android:id="@+id/viewDetailsButton"
             android:layout_width="match_parent"
@@ -108,64 +352,8 @@
             android:textColor="@color/text_light"
             android:backgroundTint="@color/primary_green"
             android:padding="16dp"
-            android:layout_marginBottom="25dp" />
-
-        <!-- 기존 코드는 나중에 제거 예정 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="성분 상세 정보"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="15dp"
-            android:visibility="gone" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="성분: 소듐하이알루로네이트"
-            android:textSize="14sp"
-            android:padding="15dp"
-            android:layout_marginBottom="10dp"
-            android:background="@color/bg_card" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="기능: 보습제"
-            android:textSize="14sp"
-            android:padding="15dp"
-            android:layout_marginBottom="10dp"
-            android:background="@color/bg_card" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="피부 타입 적합성: 모든 피부 타입"
-            android:textSize="14sp"
-            android:padding="15dp"
             android:layout_marginBottom="25dp"
-            android:background="@color/bg_card" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="✨ AI 간편 설명"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:padding="20dp"
-            android:background="@color/highlight_bg"
-            android:layout_marginBottom="10dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="소듐하이알루로네이트는 강력한 보습제로, 공기 중의 수분을 피부로 끌어당깁니다."
-            android:textSize="14sp"
-            android:padding="20dp"
-            android:paddingTop="0dp"
-            android:background="@color/highlight_bg"
-            android:lineSpacingExtra="4dp" />
+            android:visibility="gone" />
 
     </LinearLayout>
 

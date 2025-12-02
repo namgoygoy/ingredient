@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 선택된 상태: 형광 초록색 (아이콘과 동일) -->
+    <item android:color="@color/vibrant_green" android:state_checked="true" />
+    <!-- 기본 상태: 회색 (아이콘과 동일) -->
+    <item android:color="@color/nav_icon_default" />
+</selector>
+

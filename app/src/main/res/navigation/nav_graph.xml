@@ -11,30 +11,36 @@
         android:label="스캔"
         tools:layout="@layout/fragment_scan">
         <action
-            android:id="@+id/action_nav_scan_to_nav_details"
-            app:destination="@id/nav_details" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_details"
-        android:name="com.example.cosmetic.DetailsFragment"
-        android:label="상세"
-        tools:layout="@layout/fragment_details">
-        <action
-            android:id="@+id/action_nav_details_to_nav_results"
+            android:id="@+id/action_nav_scan_to_nav_results"
             app:destination="@id/nav_results" />
     </fragment>
 
     <fragment
-        android:id="@+id/nav_results"
+        android:id="@+id/nav_details"
         android:name="com.example.cosmetic.ResultsFragment"
-        android:label="결과"
+        android:label="상세"
         tools:layout="@layout/fragment_results">
         <argument
             android:name="selectedIngredient"
             app:argType="string"
             android:defaultValue="" />
     </fragment>
+
+    <fragment
+        android:id="@+id/nav_results"
+        android:name="com.example.cosmetic.DetailsFragment"
+        android:label="결과"
+        tools:layout="@layout/fragment_details">
+        <action
+            android:id="@+id/action_nav_results_to_nav_details"
+            app:destination="@id/nav_details" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.example.cosmetic.ProfileFragment"
+        android:label="프로필"
+        tools:layout="@layout/fragment_profile" />
 
 </navigation>
 

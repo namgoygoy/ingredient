@@ -9,6 +9,11 @@
         <domain includeSubdomains="true">127.0.0.1</domain>
     </domain-config>
     
+    <!-- ngrok 터널 (HTTPS 사용) -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">prefearfully-bimanous-carmon.ngrok-free.dev</domain>
+    </domain-config>
+    
     <!-- 실제 디바이스 사용 시 로컬 네트워크 IP 허용 (예시) -->
     <!--
     <domain-config cleartextTrafficPermitted="true">
