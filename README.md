@@ -16,7 +16,9 @@
 
 ## 🐤 Demo
 
-[여기에 데모 영상 첨부]
+
+https://github.com/user-attachments/assets/7078ea17-60c1-4da3-bc44-0cec65476eec
+
 
 ---
 
