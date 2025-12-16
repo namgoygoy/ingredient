@@ -99,7 +99,7 @@
 ```
 
 ### 상세 문서
-[d0c37dee-ccef-456d-841c-0e18508fb4c1_EndPoint.pdf](https://github.com/user-attachments/files/24192512/d0c37dee-ccef-456d-841c-0e18508fb4c1_EndPoint.pdf)
+[EndPoint.pdf](https://github.com/user-attachments/files/24192548/EndPoint.pdf)
 
 ---
 
