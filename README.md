@@ -8,6 +8,10 @@
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6B6B?style=for-the-badge)
 ![Gemini AI](https://img.shields.io/badge/Gemini-AI-4285F4?style=for-the-badge&logo=google&logoColor=white)
 
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/c51fbe04-6393-481a-bf2c-33fabb319ff7" alt="ingredient_promo_instagram" width="33%" />
+</div>
+
 ## One-line Summary
 
 스마트폰 카메라로 화장품 성분표를 촬영하면, RAG 기반 AI가 11,000개 이상의 검증된 성분 데이터를 분석하여 사용자 피부 타입에 맞는 맞춤형 정보를 제공하는 Android 애플리케이션입니다.
