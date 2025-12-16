@@ -13,17 +13,10 @@
 스마트폰 카메라로 화장품 성분표를 촬영하면, RAG 기반 AI가 11,000개 이상의 검증된 성분 데이터를 분석하여 사용자 피부 타입에 맞는 맞춤형 정보를 제공하는 Android 애플리케이션입니다.
 
 ---
-
 ## 🐤 Demo
-
-
-https://github.com/user-attachments/assets/7078ea17-60c1-4da3-bc44-0cec65476eec
-
-https://github.com/user-attachments/assets/a4dd8127-244b-4861-97fc-daf7f29cd6db
-
-
-
-
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/292d6afb-a9ec-4ac4-bbbf-fb41c0a7804e" width="50%" />
+</div>
 ---
 
 ## 📖 Description
