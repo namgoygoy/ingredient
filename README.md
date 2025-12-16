@@ -17,7 +17,6 @@
 <div align="center">
   <video src="https://github.com/user-attachments/assets/292d6afb-a9ec-4ac4-bbbf-fb41c0a7804e" width="50%" />
 </div>
----
 
 ## 📖 Description
 
