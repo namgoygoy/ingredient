@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 
@@ -33,6 +34,9 @@ class SkinTypeActivity : AppCompatActivity() {
     private lateinit var skipButton: TextView
     
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 다크 모드 강제 비활성화 (항상 라이트 모드 사용)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_skin_type)
         

@@ -2,13 +2,13 @@ package com.example.cosmetic
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
+import com.example.cosmetic.Constants.LogTag.SCAN_FRAGMENT
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -21,7 +21,6 @@ import androidx.camera.view.PreviewView
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
-import java.io.InputStream
 import java.util.concurrent.Executors
 
 class ScanFragment : Fragment() {
@@ -56,35 +55,6 @@ class ScanFragment : Fragment() {
         // 촬영 버튼 (실제 카메라 촬영)
         view.findViewById<View>(R.id.captureButton).setOnClickListener {
             takePhoto()
-        }
-        
-        // 테스트 모드 토글
-        val testModeToggle = view.findViewById<TextView>(R.id.testModeToggle)
-        val testButtonsContainer = view.findViewById<View>(R.id.testButtonsContainer)
-        var isTestModeExpanded = false
-        
-        testModeToggle?.setOnClickListener {
-            isTestModeExpanded = !isTestModeExpanded
-            if (isTestModeExpanded) {
-                testButtonsContainer?.visibility = View.VISIBLE
-                testModeToggle.text = "🔧 개발자 테스트 모드 (클릭하여 접기)"
-            } else {
-                testButtonsContainer?.visibility = View.GONE
-                testModeToggle.text = "🔧 개발자 테스트 모드 (클릭하여 펼치기)"
-            }
-        }
-        
-        // 테스트 버튼들 설정 (assets 이미지 사용)
-        view.findViewById<View>(R.id.testButton1).setOnClickListener {
-            testOCRFromAssets("OCR_cosmetic_sample/image_sample.jpg")
-        }
-        
-        view.findViewById<View>(R.id.testButton2).setOnClickListener {
-            testOCRFromAssets("OCR_cosmetic_sample/image_sample2.jpg")
-        }
-        
-        view.findViewById<View>(R.id.testButton3).setOnClickListener {
-            testOCRFromAssets("OCR_cosmetic_sample/image_sample3.png")
         }
     }
     
@@ -136,6 +106,7 @@ class ScanFragment : Fragment() {
                     imageCapture
                 )
             } catch (e: Exception) {
+                Log.e(SCAN_FRAGMENT, "카메라 시작 실패: ${e.message}", e)
                 Toast.makeText(
                     requireContext(),
                     "카메라 시작 실패: ${e.message}",
@@ -236,68 +207,6 @@ class ScanFragment : Fragment() {
                 }
         } else {
             imageProxy.close()
-        }
-    }
-    
-    /**
-     * Assets 폴더에서 이미지를 로드하여 OCR 테스트 수행
-     */
-    private fun testOCRFromAssets(assetPath: String) {
-        try {
-            val inputStream: InputStream = requireContext().assets.open(assetPath)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream.close()
-            
-            if (bitmap != null) {
-                val image = InputImage.fromBitmap(bitmap, 0)
-                
-                Toast.makeText(
-                    requireContext(),
-                    "🧪 테스트 이미지 OCR 처리 중...",
-                    Toast.LENGTH_SHORT
-                ).show()
-                
-                textRecognizer.process(image)
-                    .addOnSuccessListener { visionText ->
-                        val recognizedText = visionText.text
-                        
-                        if (recognizedText.isNotEmpty()) {
-                            Toast.makeText(
-                                requireContext(),
-                                "✅ 테스트 이미지 인식 완료!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            // 상세 화면으로 텍스트 전달
-                            sharedViewModel.recognizedText.value = recognizedText
-                            findNavController().navigate(R.id.action_nav_scan_to_nav_results)
-                        } else {
-                            Toast.makeText(
-                                requireContext(),
-                                "❌ 텍스트를 인식할 수 없습니다.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(
-                            requireContext(),
-                            "❌ OCR 처리 실패: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-            } else {
-                Toast.makeText(
-                    requireContext(),
-                    "이미지를 로드할 수 없습니다.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        } catch (e: Exception) {
-            Toast.makeText(
-                requireContext(),
-                "파일 로드 실패: ${e.message}",
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
     

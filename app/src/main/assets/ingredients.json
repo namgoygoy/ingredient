@@ -11072,5 +11072,40 @@
     ],
     "good_for": null,
     "bad_for": null
+  },
+  {
+    "INGR_KOR_NAME": "향료",
+    "INGR_ENG_NAME": "Parfum/Fragrance",
+    "description": "Exactly what it sounds: nice smelling stuff put into cosmetic products so that the end product also smells nice. Fragrance in the US and parfum in the EU is a generic term on the ingredient list that is made up of 30 to 50 chemicals on average (but it can have as much as 200 components!). If you are someone who likes to know what you put on your face then fragrance is not your best friend - there's no way to know what's really in it. Also, if your skin is sensitive, fragrance is again not your best friend. It's the number one cause of contact allergy to cosmetics. It's definitely a smart thing to avoid with sensitive skin (and fragrance of any type - natural is just as allergic as synthetic, if not worse!).",
+    "purpose": [
+      "fragrance"
+    ],
+    "good_for": null,
+    "bad_for": [
+      "sensitive"
+    ]
+  },
+  {
+    "INGR_KOR_NAME": "부틸페닐메칠프로피오날",
+    "INGR_ENG_NAME": "Butylphenyl Methylpropional",
+    "description": "A common fragrance ingredient that has a nice floral scent and also goes by the name Lilial. It is a known fragrance allergen and as of 1st of March 2022, it has been banned in the EU due to animal studies showing a possible link to infertility (in rats - so no need to panic even if you used a product before with Butylphenyl Methylpropional).",
+    "purpose": [
+      "fragrance"
+    ],
+    "good_for": null,
+    "bad_for": [
+      "sensitive"
+    ]
+  },
+  {
+    "INGR_KOR_NAME": "증류수",
+    "INGR_ENG_NAME": "Water",
+    "description": "Good old water, aka H2O. The most common skincare ingredient of all. You can usually find it right in the very first spot of the ingredient list, meaning it's the biggest thing out of all the stuff that makes up the product. It's mainly a solvent for ingredients that do not like to dissolve in oils but rather in water. Once inside the skin, it hydrates, but not from the outside - putting pure water on the skin (hello long baths!) is drying. One more thing: the water used in cosmetics is purified and deionized (it means that almost all of the mineral ions inside it is removed). Like this, the products can stay more stable over time.",
+    "purpose": [
+      "moisturizer",
+      "solvent"
+    ],
+    "good_for": null,
+    "bad_for": null
   }
 ]

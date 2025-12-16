@@ -4,11 +4,17 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.example.cosmetic.Constants.Animation.BOUNCE_SCALE_DOWN_MS
+import com.example.cosmetic.Constants.Animation.BOUNCE_SCALE_NORMAL_MS
+import com.example.cosmetic.Constants.Animation.BOUNCE_SCALE_UP_MS
+import com.example.cosmetic.Constants.LogTag.MAIN_ACTIVITY
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -16,6 +22,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var userPreferences: UserPreferences
     
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 다크 모드 강제 비활성화 (항상 라이트 모드 사용)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        
         super.onCreate(savedInstanceState)
         
         // 온보딩 체크
@@ -37,8 +46,8 @@ class MainActivity : AppCompatActivity() {
         bottomNavView.setupWithNavController(navController)
         
         // 바텀 네비게이션 배경을 화이트로 강제 설정
-        bottomNavView.setBackgroundColor(getColor(R.color.bg_card))
-        bottomNavView.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.bg_card))
+        bottomNavView.setBackgroundColor(getColor(R.color.white))
+        bottomNavView.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.white))
         
         // 그림자 효과 완전 제거
         removeAllShadows(bottomNavView)
@@ -76,6 +85,7 @@ class MainActivity : AppCompatActivity() {
                         true
                     } catch (e: Exception) {
                         // 이미 현재 화면이거나 Navigation 실패 시
+                        Log.w(MAIN_ACTIVITY, "Navigation failed: ${e.message}")
                         false
                     }
                 }
@@ -208,28 +218,28 @@ class MainActivity : AppCompatActivity() {
     private fun playBounceAnimation(view: View) {
         // 1단계: 0.8배로 축소
         val scaleDownX = ObjectAnimator.ofFloat(view, "scaleX", 1.0f, 0.8f).apply {
-            duration = 100
+            duration = BOUNCE_SCALE_DOWN_MS
         }
         val scaleDownY = ObjectAnimator.ofFloat(view, "scaleY", 1.0f, 0.8f).apply {
-            duration = 100
+            duration = BOUNCE_SCALE_DOWN_MS
         }
         
         // 2단계: 1.2배로 확대 (OvershootInterpolator로 탄성 효과)
         val scaleUpX = ObjectAnimator.ofFloat(view, "scaleX", 0.8f, 1.2f).apply {
-            duration = 150
+            duration = BOUNCE_SCALE_UP_MS
             interpolator = OvershootInterpolator(2.0f) // 탄성 계수
         }
         val scaleUpY = ObjectAnimator.ofFloat(view, "scaleY", 0.8f, 1.2f).apply {
-            duration = 150
+            duration = BOUNCE_SCALE_UP_MS
             interpolator = OvershootInterpolator(2.0f)
         }
         
         // 3단계: 1.0배로 복귀
         val scaleNormalX = ObjectAnimator.ofFloat(view, "scaleX", 1.2f, 1.0f).apply {
-            duration = 100
+            duration = BOUNCE_SCALE_NORMAL_MS
         }
         val scaleNormalY = ObjectAnimator.ofFloat(view, "scaleY", 1.2f, 1.0f).apply {
-            duration = 100
+            duration = BOUNCE_SCALE_NORMAL_MS
         }
         
         // 애니메이션 순서대로 실행

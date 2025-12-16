@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_main"
-    android:fillViewport="true">
+    android:background="@color/bg_main">
+
+    <!-- 메인 콘텐츠 -->
+    <ScrollView
+        android:id="@+id/mainContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -357,4 +363,77 @@
 
     </LinearLayout>
 
-</ScrollView>
+    </ScrollView>
+
+    <!-- 로딩 오버레이 -->
+    <LinearLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@color/bg_main"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- 로딩 애니메이션 컨테이너 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="280dp"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@color/bg_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="40dp">
+
+                <!-- 프로그레스 바 -->
+                <ProgressBar
+                    android:id="@+id/loadingProgressBar"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:indeterminateTint="@color/primary_green"
+                    android:layout_marginBottom="24dp" />
+
+                <!-- 로딩 아이콘 (이모지) -->
+                <TextView
+                    android:id="@+id/loadingEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔬"
+                    android:textSize="32sp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 로딩 메시지 -->
+                <TextView
+                    android:id="@+id/loadingMessage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="성분을 꼼꼼히 분석 중입니다..."
+                    android:textColor="@color/text_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- 서브 메시지 -->
+                <TextView
+                    android:id="@+id/loadingSubMessage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="잠시만 기다려 주세요"
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp"
+                    android:gravity="center" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</FrameLayout>

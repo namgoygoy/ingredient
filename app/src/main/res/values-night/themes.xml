@@ -4,11 +4,25 @@
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
         
-        <!-- Surface 색상 명시적 설정 (바텀 네비게이션 배경) -->
-        <item name="colorSurface">@color/bg_card</item>
+        <!-- 다크 모드에서도 라이트 테마 색상 강제 적용 -->
+        <item name="colorSurface">@color/white</item>
+        <item name="colorSurfaceVariant">@color/white</item>
+        <item name="colorSurfaceContainer">@color/white</item>
+        <item name="android:colorBackground">@color/bg_main</item>
+        <item name="android:navigationBarColor">@color/white</item>
         
         <!-- 텍스트 색상 명시적 설정 -->
         <item name="android:textColorPrimary">@color/text_dark</item>
         <item name="android:textColorSecondary">@color/text_muted</item>
+        
+        <!-- 바텀 네비게이션 배경 색상 -->
+        <item name="bottomNavigationStyle">@style/Widget.BottomNavigationView</item>
+    </style>
+    
+    <!-- 바텀 네비게이션 커스텀 스타일 -->
+    <style name="Widget.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/white</item>
+        <item name="backgroundTint">@color/white</item>
+        <item name="elevation">0dp</item>
     </style>
 </resources>

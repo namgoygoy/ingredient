@@ -21,6 +21,9 @@
     <color name="ingredient_good">#2196F3</color> <!-- 파란색 (좋은 성분) -->
     <color name="ingredient_bad">#F44336</color> <!-- 빨간색 (주의 성분) -->
     
+    <!-- Card Disabled State -->
+    <color name="text_disabled">#CCCCCC</color> <!-- 비활성화 텍스트 -->
+    
     <!-- Bottom Navigation Colors -->
     <color name="vibrant_green">#00FF7F</color> <!-- 형광 초록색 (선택된 아이콘) -->
     <color name="nav_icon_default">#888888</color> <!-- 기본 아이콘 색상 -->
