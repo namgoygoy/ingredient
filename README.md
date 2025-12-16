@@ -48,7 +48,7 @@
 
 ## 🔨 System Architecture
 
-[여기에 시스템 아키텍처 다이어그램 첨부]
+<img width="2816" height="1536" alt="Gemini_Generated_Image_ldc961ldc961ldc9" src="https://github.com/user-attachments/assets/0a3e683b-1293-4588-b654-89ac6f2cf3b8" />
 
 ---
 
