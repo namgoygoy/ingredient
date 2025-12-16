@@ -103,7 +103,7 @@
 ```
 
 ### 상세 문서
-[EndPoint.pdf](https://github.com/user-attachments/files/24192548/EndPoint.pdf)
+[EndPoint_인그리디언트.pdf](https://github.com/user-attachments/files/24198173/EndPoint_.pdf)
 
 ---
 
