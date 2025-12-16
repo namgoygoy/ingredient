@@ -52,7 +52,9 @@
 
 ## 📊 Logic Flow (Sequence Diagram)
 
-[여기에 시퀀스 다이어그램 첨부]
+<div align="center">
+  <img width="845" height="629" alt="image시퀸스" src="https://github.com/user-attachments/assets/04f2919a-2e44-45f5-8780-97f118d5c1dc" />
+</div>
 
 ---
 
