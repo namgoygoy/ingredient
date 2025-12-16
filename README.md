@@ -228,8 +228,9 @@ Android Studio 또는 터미널을 통해 앱을 빌드하고 실행합니다.
 
 ```bash
 ./gradlew installDebug
-4. 설치 검증 (Verification)
 ```
+
+### 4. 설치 검증 (Verification)
 
 * 서버 상태 확인: curl http://localhost:5000/health 명령어로 status: healthy 응답 확인.
 
