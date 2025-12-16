@@ -108,27 +108,46 @@ def search_ingredients(query: str, limit: int = 10) -> List[Dict]:
 
 
 def get_ingredients_by_names(names: List[str]) -> Dict[str, Dict]:
-    """여러 성분명으로 일괄 검색 (성능 최적화)"""
+    """
+    여러 성분명으로 일괄 검색 (성능 최적화)
+    
+    효율성 개선:
+    - 모든 성분을 한 번에 조회하여 네트워크 호출 최소화
+    - 메모리에서 인덱싱하여 O(1) 검색
+    
+    Args:
+        names: 검색할 성분명 리스트
+    
+    Returns:
+        성분명 → 성분 정보 딕셔너리 매핑
+    
+    Raises:
+        Exception: 데이터베이스 오류 발생 시 (빈 딕셔너리 반환)
+    """
     client = get_supabase_client()
     if not client:
+        logger.warning("Supabase 클라이언트가 없습니다.")
         return {}
     
     result_map = {}
     
     try:
-        # 모든 성분 한 번에 조회 (OR 조건)
+        # 모든 성분 한 번에 조회 (네트워크 호출 최소화)
         all_ingredients = client.table("ingredients") \
             .select("*") \
             .execute()
         
         if not all_ingredients.data:
+            logger.warning("성분 데이터가 비어있습니다.")
             return {}
         
-        # 이름으로 인덱싱
-        kor_index = {item['kor_name'].lower().replace(" ", ""): item for item in all_ingredients.data if item.get('kor_name')}
-        eng_index = {item['eng_name'].lower().replace(" ", ""): item for item in all_ingredients.data if item.get('eng_name')}
+        # 이름으로 인덱싱 (O(n) 한 번만 수행)
+        kor_index = {item['kor_name'].lower().replace(" ", ""): item 
+                     for item in all_ingredients.data if item.get('kor_name')}
+        eng_index = {item['eng_name'].lower().replace(" ", ""): item 
+                     for item in all_ingredients.data if item.get('eng_name')}
         
-        # 각 이름에 대해 매칭
+        # 각 이름에 대해 매칭 (O(1) 검색)
         for name in names:
             normalized = name.strip().lower().replace(" ", "")
             
@@ -137,7 +156,7 @@ def get_ingredients_by_names(names: List[str]) -> Dict[str, Dict]:
             elif normalized in eng_index:
                 result_map[name] = eng_index[normalized]
             else:
-                # 부분 매칭 시도
+                # 부분 매칭 시도 (O(n), 최후의 수단)
                 for kor_name, item in kor_index.items():
                     if normalized in kor_name or kor_name in normalized:
                         result_map[name] = item
@@ -150,7 +169,7 @@ def get_ingredients_by_names(names: List[str]) -> Dict[str, Dict]:
         
         return result_map
     except Exception as e:
-        logger.error(f"❌ 일괄 검색 오류: {e}", exc_info=True)
+        logger.error(f"❌ 일괄 검색 오류 (names: {names}): {e}", exc_info=True)
         return {}
 
 

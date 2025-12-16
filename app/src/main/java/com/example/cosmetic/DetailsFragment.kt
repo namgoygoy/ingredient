@@ -29,16 +29,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.cosmetic.Constants.Analysis.MIN_REPORT_LENGTH
 import com.example.cosmetic.Constants.Animation.FADE_DURATION_MS
 import com.example.cosmetic.Constants.Animation.LOADING_MESSAGE_INTERVAL_MS
-import com.example.cosmetic.Constants.ErrorMessage.ANALYSIS_FAILED
-import com.example.cosmetic.Constants.ErrorMessage.SERVER_CONNECTION_FAILED
 import com.example.cosmetic.Constants.LogTag.DETAILS_FRAGMENT
-import com.example.cosmetic.network.AnalyzeProductRequest
 import com.example.cosmetic.network.AnalyzeProductResponse
-import com.example.cosmetic.network.RetrofitClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * 제품 분석 결과 상세 화면 Fragment
@@ -69,9 +63,9 @@ class DetailsFragment : Fragment() {
     // 현재 분석 결과 저장 (Bottom Sheet에서 사용)
     private var currentAnalysisResult: AnalyzeProductResponse? = null
     
-    // Gemini AI Service
+    // Gemini AI Service (AppConfig에서 API 키 자동 로드)
     private val geminiService by lazy {
-        GeminiService(BuildConfig.GEMINI_API_KEY)
+        GeminiService()
     }
     
     // 성분 파싱 유틸리티
@@ -194,9 +188,9 @@ class DetailsFragment : Fragment() {
         sharedViewModel.recognizedText.observe(viewLifecycleOwner) { recognizedText ->
             if (recognizedText.isNotEmpty() && sharedViewModel.parsedIngredients.value.isNullOrEmpty()) {
                 // IngredientParser를 사용하여 성분 파싱
-                val ingredients = ingredientParser.parseIngredients(recognizedText)
-                if (ingredients.isNotEmpty()) {
-                    sharedViewModel.parsedIngredients.value = ingredients
+                    val ingredients = ingredientParser.parseIngredients(recognizedText)
+                    if (ingredients.isNotEmpty()) {
+                        sharedViewModel.setParsedIngredients(ingredients)
                     ingredientsAdapter.submitList(ingredients)
                     
                     // 전체 제품 분석 수행
@@ -233,11 +227,18 @@ class DetailsFragment : Fragment() {
      * 2. 2.5초마다 다음 메시지로 변경 (페이드 애니메이션 적용)
      * 3. 메시지 목록을 순환하며 반복
      * 
+     * 메모리 누수 방지:
+     * - Handler는 viewLifecycleOwner와 연결되어 Fragment 생명주기에 따라 자동 정리됩니다.
+     * - onDestroyView에서 명시적으로 모든 콜백을 제거합니다.
+     * 
      * @param view Fragment의 루트 뷰
      * 
      * @see hideLoadingAnimation 로딩 애니메이션을 중지하는 메서드
      */
     private fun showLoadingAnimation(view: View) {
+        // 기존 Handler가 있으면 먼저 정리
+        hideLoadingAnimation()
+        
         currentMessageIndex = 0
         
         val loadingMessage = view.findViewById<TextView>(R.id.loadingMessage)
@@ -247,10 +248,15 @@ class DetailsFragment : Fragment() {
         loadingMessage?.text = loadingMessages[0]
         loadingSubMessage?.text = loadingSubMessages[0]
         
-        // 메시지 변경 핸들러 시작
+        // 메시지 변경 핸들러 시작 (viewLifecycleOwner와 연결하여 생명주기 관리)
         loadingMessageHandler = Handler(Looper.getMainLooper())
         loadingMessageRunnable = object : Runnable {
             override fun run() {
+                // Fragment가 destroy되었는지 확인
+                if (!isAdded || viewLifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.DESTROYED)) {
+                    return
+                }
+                
                 currentMessageIndex = (currentMessageIndex + 1) % loadingMessages.size
                 
                 // 페이드 아웃 → 텍스트 변경 → 페이드 인 애니메이션
@@ -260,6 +266,11 @@ class DetailsFragment : Fragment() {
                     }
                     fadeOut.addListener(object : android.animation.AnimatorListenerAdapter() {
                         override fun onAnimationEnd(animation: android.animation.Animator) {
+                            // Fragment가 여전히 활성 상태인지 확인
+                            if (!isAdded || viewLifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.DESTROYED)) {
+                                return
+                            }
+                            
                             messageView.text = loadingMessages[currentMessageIndex]
                             loadingSubMessage?.text = loadingSubMessages[currentMessageIndex]
                             
@@ -283,8 +294,10 @@ class DetailsFragment : Fragment() {
                     }
                 }
                 
-                // 로딩 메시지 변경 주기
-                loadingMessageHandler?.postDelayed(this, LOADING_MESSAGE_INTERVAL_MS)
+                // 로딩 메시지 변경 주기 (Fragment가 활성 상태일 때만)
+                if (isAdded && !viewLifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.DESTROYED)) {
+                    loadingMessageHandler?.postDelayed(this, LOADING_MESSAGE_INTERVAL_MS)
+                }
             }
         }
         
@@ -320,88 +333,47 @@ class DetailsFragment : Fragment() {
     }
     
     /**
-     * 제품 성분 분석을 위해 RAG 서버에 API 요청을 보냅니다.
+     * 제품 성분 분석을 위해 Repository를 통해 API 요청을 보냅니다.
      * 
-     * 사용자의 피부 타입과 함께 성분 리스트를 서버로 전송하여 분석을 요청합니다.
+     * Repository 패턴을 사용하여 네트워크 호출과 에러 처리를 중앙화했습니다.
      * 분석 결과는 SharedViewModel의 analysisResult에 저장되며, 이를 관찰하는 UI가 자동으로 업데이트됩니다.
-     * 
-     * 처리 흐름:
-     * 1. 로딩 상태를 true로 설정
-     * 2. 사용자 피부 타입 조회
-     * 3. RAG 서버에 분석 요청 (IO 스레드에서 실행)
-     * 4. 성공 시 결과를 SharedViewModel에 저장
-     * 5. 실패 시 에러 메시지를 SharedViewModel에 저장
-     * 6. finally 블록에서 로딩 상태를 false로 설정
-     * 
-     * 에러 처리:
-     * - UnknownHostException: 서버 연결 불가 (ngrok 터널 확인 필요)
-     * - ConnectException: 서버 연결 거부 (서버 실행 여부 확인)
-     * - 기타 예외: 네트워크 오류 메시지 표시
      * 
      * @param ingredients 분석할 성분명 리스트
      * 
-     * @throws Exception 네트워크 오류 또는 서버 오류 발생 시
-     * 
+     * @see ProductAnalysisRepository 네트워크 호출을 담당하는 Repository
      * @see SharedViewModel.analysisResult 분석 결과를 저장하는 LiveData
      * @see displayAnalysisDetails 분석 결과를 UI에 표시하는 메서드
      */
     private fun analyzeProduct(ingredients: List<String>) {
-        // ResultsFragment와 동일한 로직으로 전체 제품 분석 수행
         lifecycleScope.launch {
-            sharedViewModel.isLoading.value = true
-            sharedViewModel.errorMessage.value = null
+            sharedViewModel.setLoading(true)
+            sharedViewModel.setErrorMessage(null)
             
-            try {
-                // 사용자 피부 타입 가져오기
-                val userPreferences = UserPreferences(requireContext())
-                val skinType = userPreferences.getSkinType()
-                
-                val request = com.example.cosmetic.network.AnalyzeProductRequest(
-                    ingredients = ingredients,
-                    skinType = skinType // 사용자 피부 타입 사용
-                )
-                
-                val response = withContext(Dispatchers.IO) {
-                    com.example.cosmetic.network.RetrofitClient.apiService.analyzeProduct(request).execute()
+            // Repository를 통한 분석 수행
+            val repository = com.example.cosmetic.repository.ProductAnalysisRepository(
+                apiService = com.example.cosmetic.network.RetrofitClient.apiService,
+                userPreferences = UserPreferences(requireContext())
+            )
+            
+            when (val result = repository.analyzeProduct(ingredients)) {
+                is kotlin.Result.Success -> {
+                    sharedViewModel.setAnalysisResult(result.getOrNull())
                 }
-                
-                if (response.isSuccessful && response.body() != null) {
-                    val result = response.body()!!
-                    sharedViewModel.analysisResult.value = result
-                } else {
-                    val errorMsg = response.errorBody()?.string() ?: "알 수 없는 오류가 발생했습니다."
-                    sharedViewModel.errorMessage.value = "분석 실패: $errorMsg"
+                is kotlin.Result.Failure -> {
+                    val error = result.exceptionOrNull()
+                    when (error) {
+                        is com.example.cosmetic.repository.NetworkError -> {
+                            sharedViewModel.setErrorMessage(error.getUserMessage())
+                        }
+                        else -> {
+                            sharedViewModel.setErrorMessage("예상치 못한 오류가 발생했습니다.")
+                            Log.e(DETAILS_FRAGMENT, "Unexpected error in analyzeProduct", error)
+                        }
+                    }
                 }
-            } catch (e: java.net.UnknownHostException) {
-                // CRITICAL: DNS 해석 실패 (네트워크 또는 서버 주소 문제)
-                sharedViewModel.errorMessage.value = 
-                    "서버에 연결할 수 없습니다.\n\n확인 사항:\n1. 인터넷 연결 확인\n2. ngrok 터널이 실행 중인지 확인\n3. ngrok 주소가 변경되지 않았는지 확인"
-                Log.e(DETAILS_FRAGMENT, "DNS resolution failed", e)
-            } catch (e: java.net.ConnectException) {
-                // CRITICAL: 서버 연결 거부 (서버 미실행)
-                sharedViewModel.errorMessage.value = 
-                    "서버에 연결할 수 없습니다. ngrok 터널이 실행 중인지 확인해주세요."
-                Log.e(DETAILS_FRAGMENT, "Connection refused", e)
-            } catch (e: java.net.SocketTimeoutException) {
-                // CRITICAL: 타임아웃 (서버 응답 지연)
-                sharedViewModel.errorMessage.value = "서버 응답 시간이 초과되었습니다. 다시 시도해주세요."
-                Log.e(DETAILS_FRAGMENT, "Socket timeout", e)
-            } catch (e: java.io.IOException) {
-                // CRITICAL: 기타 네트워크 오류
-                sharedViewModel.errorMessage.value = "네트워크 오류: ${e.message}"
-                Log.e(DETAILS_FRAGMENT, "Network I/O error", e)
-            } catch (e: org.json.JSONException) {
-                // CRITICAL: JSON 파싱 오류 (서버 응답 형식 문제)
-                sharedViewModel.errorMessage.value = "서버 응답 형식이 올바르지 않습니다."
-                Log.e(DETAILS_FRAGMENT, "JSON parsing error", e)
-            } catch (e: Exception) {
-                // CRITICAL: 예상치 못한 예외 (OutOfMemoryError 등 시스템 에러는 제외)
-                // 시스템 에러는 이 블록에 들어오지 않고 상위로 전파되어 앱 재시작
-                sharedViewModel.errorMessage.value = "예상치 못한 오류: ${e.message}"
-                Log.e(DETAILS_FRAGMENT, "Unexpected error in analyzeProduct", e)
-            } finally {
-                sharedViewModel.isLoading.value = false
             }
+            
+            sharedViewModel.setLoading(false)
         }
     }
     

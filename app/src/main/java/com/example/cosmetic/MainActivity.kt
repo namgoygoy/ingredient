@@ -58,11 +58,16 @@ class MainActivity : AppCompatActivity() {
     
     /**
      * 바텀 네비게이션 설정 (배경 제거 + 바운스 애니메이션)
+     * 
+     * 메모리 누수 방지:
+     * - ViewTreeObserver 리스너는 onGlobalLayout에서 즉시 제거됩니다.
+     * - Activity가 destroy될 때 추가 정리 작업이 필요 없습니다.
      */
     private fun setupBottomNavigation(bottomNavView: BottomNavigationView, navController: androidx.navigation.NavController) {
         // 뷰 트리가 완전히 그려진 후 실행
-        bottomNavView.viewTreeObserver.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
+        val layoutListener = object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
+                // 리스너 즉시 제거 (메모리 누수 방지)
                 bottomNavView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                 
                 // 초기 배경 제거
@@ -90,7 +95,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-        })
+        }
+        bottomNavView.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
     }
     
     /**

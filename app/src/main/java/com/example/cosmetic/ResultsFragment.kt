@@ -20,13 +20,10 @@ import androidx.navigation.fragment.findNavController
 import com.example.cosmetic.Constants.Analysis.MIN_DESCRIPTION_LENGTH
 import com.example.cosmetic.Constants.Animation.FADE_DURATION_MS
 import com.example.cosmetic.Constants.Animation.LOADING_MESSAGE_INTERVAL_MS
-import com.example.cosmetic.Constants.ErrorMessage.ANALYSIS_FAILED
 import com.example.cosmetic.Constants.ErrorMessage.DATA_LOAD_FAILED
 import com.example.cosmetic.Constants.ErrorMessage.GEMINI_API_FAILED
 import com.example.cosmetic.Constants.LogTag.RESULTS_FRAGMENT
-import com.example.cosmetic.network.AnalyzeProductRequest
 import com.example.cosmetic.network.AnalyzeProductResponse
-import com.example.cosmetic.network.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -64,15 +61,16 @@ import java.io.IOException
 class ResultsFragment : Fragment() {
     
     private val sharedViewModel: SharedViewModel by activityViewModels()
-    private val apiService = RetrofitClient.apiService
     private lateinit var userPreferences: UserPreferences
     
-    // ingredients.json 데이터 캐시
-    private var ingredientsData: JSONArray? = null
+    // 효율성 개선: IngredientCache 사용 (인덱싱 및 싱글톤)
+    private val ingredientCache by lazy {
+        com.example.cosmetic.utils.IngredientCache.getInstance(requireContext())
+    }
     
-    // Gemini AI Service
+    // Gemini AI Service (AppConfig에서 API 키 자동 로드)
     private val geminiService by lazy {
-        GeminiService(BuildConfig.GEMINI_API_KEY)
+        GeminiService()
     }
     
     // 성분 파싱 유틸리티
@@ -146,7 +144,7 @@ class ResultsFragment : Fragment() {
         if (selectedIngredient.isNotEmpty()) {
             // 개별 성분 모드: 이전 결과를 초기화하여 observer 중복 호출 방지
             // SharedViewModel에 남아있는 이전 제품 분석 결과로 인해 observer가 2번 호출되는 문제 해결
-            sharedViewModel.analysisResult.value = null
+            sharedViewModel.setAnalysisResult(null)
             currentAnalyzingIngredient = selectedIngredient
             
             // 선택된 성분에 대한 상세 정보 표시
@@ -160,7 +158,7 @@ class ResultsFragment : Fragment() {
                 if (recognizedText.isNotEmpty()) {
                     val ingredients = ingredientParser.parseIngredients(recognizedText)
                     if (ingredients.isNotEmpty()) {
-                        sharedViewModel.parsedIngredients.value = ingredients
+                        sharedViewModel.setParsedIngredients(ingredients)
                         val ingredientsText = ingredients.joinToString(", ")
                         view.findViewById<TextView>(R.id.productIngredients)?.text = ingredientsText
                         analyzeProduct(ingredients)
@@ -221,11 +219,18 @@ class ResultsFragment : Fragment() {
      * 2. 2.5초마다 다음 메시지로 변경 (페이드 애니메이션 적용)
      * 3. 메시지 목록을 순환하며 반복
      * 
+     * 메모리 누수 방지:
+     * - Handler는 viewLifecycleOwner와 연결되어 Fragment 생명주기에 따라 자동 정리됩니다.
+     * - onDestroyView에서 명시적으로 모든 콜백을 제거합니다.
+     * 
      * @param view Fragment의 루트 뷰
      * 
      * @see hideLoadingAnimation 로딩 애니메이션을 중지하는 메서드
      */
     private fun showLoadingAnimation(view: View) {
+        // 기존 Handler가 있으면 먼저 정리
+        hideLoadingAnimation()
+        
         currentMessageIndex = 0
         
         val loadingMessage = view.findViewById<TextView>(R.id.loadingMessage)
@@ -235,10 +240,15 @@ class ResultsFragment : Fragment() {
         loadingMessage?.text = loadingMessages[0]
         loadingSubMessage?.text = loadingSubMessages[0]
         
-        // 메시지 변경 핸들러 시작
+        // 메시지 변경 핸들러 시작 (viewLifecycleOwner와 연결하여 생명주기 관리)
         loadingMessageHandler = Handler(Looper.getMainLooper())
         loadingMessageRunnable = object : Runnable {
             override fun run() {
+                // Fragment가 destroy되었는지 확인
+                if (!isAdded || viewLifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.DESTROYED)) {
+                    return
+                }
+                
                 currentMessageIndex = (currentMessageIndex + 1) % loadingMessages.size
                 
                 // 페이드 아웃 → 텍스트 변경 → 페이드 인 애니메이션
@@ -248,6 +258,11 @@ class ResultsFragment : Fragment() {
                     }
                     fadeOut.addListener(object : android.animation.AnimatorListenerAdapter() {
                         override fun onAnimationEnd(animation: android.animation.Animator) {
+                            // Fragment가 여전히 활성 상태인지 확인
+                            if (!isAdded || viewLifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.DESTROYED)) {
+                                return
+                            }
+                            
                             messageView.text = loadingMessages[currentMessageIndex]
                             loadingSubMessage?.text = loadingSubMessages[currentMessageIndex]
                             
@@ -271,8 +286,10 @@ class ResultsFragment : Fragment() {
                     }
                 }
                 
-                // 로딩 메시지 변경 주기
-                loadingMessageHandler?.postDelayed(this, LOADING_MESSAGE_INTERVAL_MS)
+                // 로딩 메시지 변경 주기 (Fragment가 활성 상태일 때만)
+                if (isAdded && !viewLifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.DESTROYED)) {
+                    loadingMessageHandler?.postDelayed(this, LOADING_MESSAGE_INTERVAL_MS)
+                }
             }
         }
         
@@ -413,89 +430,51 @@ class ResultsFragment : Fragment() {
     }
     
     /**
-     * 제품 성분 분석을 위해 RAG 서버에 API 요청을 보냅니다.
+     * 제품 성분 분석을 위해 Repository를 통해 API 요청을 보냅니다.
      * 
-     * 사용자의 피부 타입과 함께 성분 리스트를 서버로 전송하여 분석을 요청합니다.
+     * Repository 패턴을 사용하여 네트워크 호출과 에러 처리를 중앙화했습니다.
      * 분석 결과는 SharedViewModel의 analysisResult에 저장되며, 이를 관찰하는 UI가 자동으로 업데이트됩니다.
-     * 
-     * 처리 흐름:
-     * 1. 로딩 상태를 true로 설정
-     * 2. 사용자 피부 타입 조회
-     * 3. RAG 서버에 분석 요청 (IO 스레드에서 실행)
-     * 4. 성공 시 결과를 SharedViewModel에 저장
-     * 5. 실패 시 에러 메시지를 SharedViewModel에 저장
-     * 6. finally 블록에서 로딩 상태를 false로 설정
-     * 
-     * 에러 처리:
-     * - UnknownHostException: 서버 연결 불가 (ngrok 터널 확인 필요)
-     * - ConnectException: 서버 연결 거부 (서버 실행 여부 확인)
-     * - 기타 예외: 네트워크 오류 메시지 표시
      * 
      * @param ingredients 분석할 성분명 리스트
      * 
-     * @throws Exception 네트워크 오류 또는 서버 오류 발생 시
-     * 
+     * @see ProductAnalysisRepository 네트워크 호출을 담당하는 Repository
      * @see SharedViewModel.analysisResult 분석 결과를 저장하는 LiveData
      * @see displayAnalysisResult 분석 결과를 UI에 표시하는 메서드
      */
     private fun analyzeProduct(ingredients: List<String>) {
         lifecycleScope.launch {
-            sharedViewModel.isLoading.value = true
-            sharedViewModel.errorMessage.value = null
+            sharedViewModel.setLoading(true)
+            sharedViewModel.setErrorMessage(null)
             
-            try {
-                // 사용자 피부 타입 가져오기
-                if (!::userPreferences.isInitialized) {
-                    userPreferences = UserPreferences(requireContext())
-                }
-                val skinType = userPreferences.getSkinType()
-                
-                val request = AnalyzeProductRequest(
-                    ingredients = ingredients,
-                    skinType = skinType
-                )
-                
-                val response = withContext(Dispatchers.IO) {
-                    apiService.analyzeProduct(request).execute()
-                }
-                
-                if (response.isSuccessful && response.body() != null) {
-                    val result = response.body()!!
-                    sharedViewModel.analysisResult.value = result
-                } else {
-                    val errorMsg = response.errorBody()?.string() ?: "알 수 없는 오류가 발생했습니다."
-                    sharedViewModel.errorMessage.value = "분석 실패: $errorMsg"
-                }
-            } catch (e: java.net.UnknownHostException) {
-                // CRITICAL: DNS 해석 실패 (네트워크 또는 서버 주소 문제)
-                sharedViewModel.errorMessage.value = 
-                    "서버에 연결할 수 없습니다.\n\n확인 사항:\n1. 인터넷 연결 확인\n2. ngrok 터널이 실행 중인지 확인\n3. ngrok 주소가 변경되지 않았는지 확인"
-                Log.e(RESULTS_FRAGMENT, "DNS resolution failed", e)
-            } catch (e: java.net.ConnectException) {
-                // CRITICAL: 서버 연결 거부 (서버 미실행)
-                sharedViewModel.errorMessage.value = 
-                    "서버에 연결할 수 없습니다. ngrok 터널이 실행 중인지 확인해주세요."
-                Log.e(RESULTS_FRAGMENT, "Connection refused", e)
-            } catch (e: java.net.SocketTimeoutException) {
-                // CRITICAL: 타임아웃 (서버 응답 지연)
-                sharedViewModel.errorMessage.value = "서버 응답 시간이 초과되었습니다. 다시 시도해주세요."
-                Log.e(RESULTS_FRAGMENT, "Socket timeout", e)
-            } catch (e: java.io.IOException) {
-                // CRITICAL: 기타 네트워크 오류
-                sharedViewModel.errorMessage.value = "네트워크 오류: ${e.message}"
-                Log.e(RESULTS_FRAGMENT, "Network I/O error", e)
-            } catch (e: org.json.JSONException) {
-                // CRITICAL: JSON 파싱 오류 (서버 응답 형식 문제)
-                sharedViewModel.errorMessage.value = "서버 응답 형식이 올바르지 않습니다."
-                Log.e(RESULTS_FRAGMENT, "JSON parsing error", e)
-            } catch (e: Exception) {
-                // CRITICAL: 예상치 못한 예외 (OutOfMemoryError 등 시스템 에러는 제외)
-                // 시스템 에러는 이 블록에 들어오지 않고 상위로 전파되어 앱 재시작
-                sharedViewModel.errorMessage.value = "예상치 못한 오류: ${e.message}"
-                Log.e(RESULTS_FRAGMENT, "Unexpected error in analyzeProduct", e)
-            } finally {
-                sharedViewModel.isLoading.value = false
+            // Repository를 통한 분석 수행
+            if (!::userPreferences.isInitialized) {
+                userPreferences = UserPreferences(requireContext())
             }
+            
+            val repository = com.example.cosmetic.repository.ProductAnalysisRepository(
+                apiService = com.example.cosmetic.network.RetrofitClient.apiService,
+                userPreferences = userPreferences
+            )
+            
+            when (val result = repository.analyzeProduct(ingredients)) {
+                is kotlin.Result.Success -> {
+                    sharedViewModel.setAnalysisResult(result.getOrNull())
+                }
+                is kotlin.Result.Failure -> {
+                    val error = result.exceptionOrNull()
+                    when (error) {
+                        is com.example.cosmetic.repository.NetworkError -> {
+                            sharedViewModel.setErrorMessage(error.getUserMessage())
+                        }
+                        else -> {
+                            sharedViewModel.setErrorMessage("예상치 못한 오류가 발생했습니다.")
+                            Log.e(RESULTS_FRAGMENT, "Unexpected error in analyzeProduct", error)
+                        }
+                    }
+                }
+            }
+            
+            sharedViewModel.setLoading(false)
         }
     }
     
@@ -658,13 +637,9 @@ class ResultsFragment : Fragment() {
      private suspend fun loadIngredientDescriptionValue(ingredientName: String): String {
          return withContext(Dispatchers.IO) {
              try {
-                 // ingredients.json 로드
-                 if (ingredientsData == null) {
-                     ingredientsData = loadIngredientsJson()
-                 }
-                 
-                 // 성분 정보 찾기
-                 val ingredientInfo = findIngredientByName(ingredientName)
+                 // 효율성 개선: IngredientCache 사용 (인덱싱)
+                 ingredientCache.loadData()
+                 val ingredientInfo = ingredientCache.findByName(ingredientName)
                  
                  if (ingredientInfo != null) {
                      val description = ingredientInfo.optString("description", "")
@@ -714,13 +689,9 @@ class ResultsFragment : Fragment() {
      private suspend fun loadIngredientPurpose(ingredientName: String): String {
          return withContext(Dispatchers.IO) {
              try {
-                 // ingredients.json 로드 (캐시가 있으면 재사용)
-                 if (ingredientsData == null) {
-                     ingredientsData = loadIngredientsJson()
-                 }
-                 
-                 // 성분 정보 찾기
-                 val ingredientInfo = findIngredientByName(ingredientName)
+                 // 효율성 개선: IngredientCache 사용 (인덱싱)
+                 ingredientCache.loadData()
+                 val ingredientInfo = ingredientCache.findByName(ingredientName)
                  
                  if (ingredientInfo != null) {
                      val purposeArray = ingredientInfo.optJSONArray("purpose")
@@ -826,15 +797,11 @@ class ResultsFragment : Fragment() {
      private fun loadIngredientDescription(view: View, ingredientName: String) {
          lifecycleScope.launch {
              try {
-                 // ingredients.json 로드 (캐시가 있으면 재사용)
-                 if (ingredientsData == null) {
-                     ingredientsData = withContext(Dispatchers.IO) {
-                         loadIngredientsJson()
-                     }
+                 // 효율성 개선: IngredientCache 사용 (인덱싱)
+                 withContext(Dispatchers.IO) {
+                     ingredientCache.loadData()
                  }
-                 
-                 // 성분 정보 찾기
-                 val ingredientInfo = findIngredientByName(ingredientName)
+                 val ingredientInfo = ingredientCache.findByName(ingredientName)
                  
                  if (ingredientInfo != null) {
                      // ingredients.json에 정보가 있는 경우
@@ -896,95 +863,8 @@ class ResultsFragment : Fragment() {
          }
      }
     
-    /**
-     * ingredients.json 파일을 assets 폴더에서 로드합니다.
-     * 
-     * 성분 데이터가 저장된 JSON 파일을 읽어서 JSONArray로 반환합니다.
-     * 로드 실패 시 빈 배열을 반환합니다.
-     * 
-     * @return 로드된 JSONArray, 실패 시 빈 배열
-     * @throws IOException 파일 읽기 실패 시
-     */
-    private fun loadIngredientsJson(): JSONArray {
-        return try {
-            // CRITICAL: 파일 읽기와 JSON 파싱을 분리하여 구체적으로 에러 처리
-            val jsonString = try {
-                requireContext().assets.open("ingredients.json").bufferedReader().use { it.readText() }
-            } catch (e: IOException) {
-                // 파일 읽기 실패 (파일 없음, 권한 문제 등)
-                Log.e(RESULTS_FRAGMENT, "Failed to read ingredients.json file", e)
-                return JSONArray("[]")
-            }
-            
-            // JSON 파싱
-            JSONArray(jsonString)
-        } catch (e: org.json.JSONException) {
-            // CRITICAL: JSON 형식 오류 (파일 내용이 올바르지 않음)
-            Log.e(RESULTS_FRAGMENT, "Failed to parse ingredients.json - invalid JSON format", e)
-            JSONArray("[]")
-        } catch (e: Exception) {
-            // CRITICAL: 예상치 못한 예외 (OutOfMemoryError는 여기 들어오지 않음)
-            Log.e(RESULTS_FRAGMENT, "Unexpected error loading ingredients.json", e)
-            JSONArray("[]")
-        }
-    }
-    
-    /**
-     * 성분명으로 ingredients.json에서 성분 정보를 찾습니다.
-     * 
-     * 검색 방식:
-     * 1. 정확 매칭: 한국어 이름 또는 영어 이름으로 정확히 일치하는 성분 찾기
-     * 2. 부분 매칭: 정확 매칭이 없으면 부분 문자열로 검색
-     * 
-     * 정규화:
-     * - 공백 제거
-     * - 소문자 변환
-     * - 이렇게 하면 "소듐하이알루로네이트"와 "소듐 하이알루로네이트"를 동일하게 처리
-     * 
-     * @param ingredientName 찾을 성분명
-     * @return 찾은 성분 정보 JSONObject, 없으면 null
-     * 
-     * @see loadIngredientsJson ingredients.json을 로드하는 메서드
-     */
-    private fun findIngredientByName(ingredientName: String): JSONObject? {
-        val data = ingredientsData ?: return null
-        
-        // 성분명 정규화 (공백 제거, 소문자 변환)
-        val normalizedSearchName = ingredientName.trim().lowercase().replace(" ", "")
-        
-        for (i in 0 until data.length()) {
-            val item = data.getJSONObject(i)
-            val korName = item.optString("INGR_KOR_NAME", "")
-            val engName = item.optString("INGR_ENG_NAME", "")
-            
-            // 한국어 또는 영어 이름으로 정확 매칭
-            val normalizedKorName = korName.lowercase().replace(" ", "")
-            val normalizedEngName = engName.lowercase().replace(" ", "")
-            
-            if (normalizedKorName == normalizedSearchName || normalizedEngName == normalizedSearchName) {
-                return item
-            }
-        }
-        
-        // 정확한 매칭이 없으면 부분 매칭 시도
-        for (i in 0 until data.length()) {
-            val item = data.getJSONObject(i)
-            val korName = item.optString("INGR_KOR_NAME", "")
-            val engName = item.optString("INGR_ENG_NAME", "")
-            
-            val normalizedKorName = korName.lowercase().replace(" ", "")
-            val normalizedEngName = engName.lowercase().replace(" ", "")
-            
-            if (normalizedKorName.contains(normalizedSearchName) || 
-                normalizedSearchName.contains(normalizedKorName) ||
-                normalizedEngName.contains(normalizedSearchName) || 
-                normalizedSearchName.contains(normalizedEngName)) {
-                return item
-            }
-        }
-        
-        return null
-    }
+    // 효율성 개선: loadIngredientsJson()과 findIngredientByName() 메서드 제거
+    // IngredientCache가 이 기능을 대체합니다.
     
     /**
      * 전체 제품 분석 정보를 표시합니다.

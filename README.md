@@ -128,39 +128,70 @@ cosmetic/
 │   │   │   │   ├── ScanFragment.kt             # 카메라 촬영 및 OCR
 │   │   │   │   ├── ResultsFragment.kt          # 분석 결과 표시
 │   │   │   │   ├── DetailsFragment.kt          # 제품 상세 분석
+│   │   │   │   ├── ProfileFragment.kt           # 프로필 화면
 │   │   │   │   ├── SkinTypeActivity.kt          # 피부 타입 선택 (온보딩)
 │   │   │   │   ├── GeminiService.kt            # Gemini AI 통합
 │   │   │   │   ├── IngredientParser.kt         # 성분 파싱 로직
 │   │   │   │   ├── SharedViewModel.kt           # Fragment 간 데이터 공유
 │   │   │   │   ├── UserPreferences.kt          # 사용자 설정 관리
 │   │   │   │   ├── Constants.kt                # 앱 전역 상수
-│   │   │   │   └── network/
-│   │   │   │       ├── RAGApiService.kt        # Retrofit API 인터페이스
-│   │   │   │       ├── RetrofitClient.kt       # Retrofit 클라이언트 설정
-│   │   │   │       └── AnalyzeProductModels.kt  # API 요청/응답 모델
+│   │   │   │   ├── config/
+│   │   │   │   │   └── AppConfig.kt             # 앱 설정 관리
+│   │   │   │   ├── network/
+│   │   │   │   │   ├── RAGApiService.kt        # Retrofit API 인터페이스
+│   │   │   │   │   ├── RetrofitClient.kt       # Retrofit 클라이언트 설정
+│   │   │   │   │   └── AnalyzeProductModels.kt  # API 요청/응답 모델
+│   │   │   │   ├── repository/
+│   │   │   │   │   └── ProductAnalysisRepository.kt  # 제품 분석 Repository
+│   │   │   │   └── utils/
+│   │   │   │       ├── IngredientCache.kt      # 성분 캐시 유틸리티
+│   │   │   │       ├── LoadingAnimationHelper.kt  # 로딩 애니메이션 헬퍼
+│   │   │   │       └── SkinTypeExtractor.kt     # 피부 타입 추출 유틸리티
 │   │   │   ├── res/                            # 리소스 파일 (레이아웃, 이미지 등)
 │   │   │   └── assets/
 │   │   │       └── ingredients.json           # 성분 데이터베이스 (11,000+ 항목)
-│   │   └── build.gradle.kts                    # 앱 빌드 설정
+│   │   ├── test/                               # 단위 테스트
+│   │   └── androidTest/                        # Android 통합 테스트
+│   ├── build.gradle.kts                        # 앱 빌드 설정
 │   └── proguard-rules.pro                      # ProGuard 규칙
 │
 ├── backend/
+│   ├── api/                                    # API 라우터 및 모델
+│   │   ├── __init__.py
+│   │   ├── models.py                           # Pydantic 모델 정의
+│   │   └── routes.py                           # FastAPI 라우터
+│   ├── rag/                                    # RAG 시스템 핵심 로직
+│   │   ├── __init__.py
+│   │   ├── data_loader.py                      # 데이터 로더 (Supabase/JSON)
+│   │   ├── enterprise_rag.py                   # Enterprise RAG 클래스
+│   │   ├── ingredient_search.py                 # 성분 검색 로직
+│   │   ├── memory.py                           # 대화 메모리 관리
+│   │   └── vector_store.py                     # ChromaDB 벡터 스토어
+│   ├── llm/                                    # LLM 관련 클래스
+│   │   ├── __init__.py
+│   │   └── mock_llm.py                         # Mock LLM 구현
 │   ├── rag_server_supabase.py                  # FastAPI 메인 서버
-│   ├── supabase_client.py                       # Supabase 클라이언트
+│   ├── supabase_client.py                      # Supabase 클라이언트
+│   ├── migrate_to_supabase.py                  # Supabase 마이그레이션 스크립트
 │   ├── SUPABASE_SETUP.sql                      # 데이터베이스 스키마
 │   ├── requirements.txt                        # Python 의존성
 │   ├── start_server.sh                         # 개발 서버 실행 스크립트
 │   ├── start_server_supabase.sh                # Supabase 연동 서버 실행
-│   ├── start_server_prod.sh                    # 프로덕션 서버 실행
+│   ├── start_server_prod.sh                   # 프로덕션 서버 실행
 │   ├── chroma_db_ingredients/                  # ChromaDB 벡터 스토어 디렉토리
-│   └── venv/                                    # Python 가상 환경
+│   └── venv/                                   # Python 가상 환경
 │
-├── gradle/                                      # Gradle Wrapper
+├── gradle/                                     # Gradle Wrapper
+│   ├── libs.versions.toml                      # 의존성 버전 관리
+│   └── wrapper/
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
 ├── build.gradle.kts                            # 프로젝트 빌드 설정
 ├── settings.gradle.kts                         # 프로젝트 설정
 ├── gradle.properties                           # Gradle 속성
-├── local.properties                            # 로컬 설정 (API 키 등)
+├── local.properties                            # 로컬 설정 (API 키 등, .gitignore)
 ├── ARCHITECTURE.md                             # 시스템 아키텍처 문서
+├── SETUP_GUIDE.md                              # 설정 가이드 문서
 └── README.md                                   # 프로젝트 README
 ```
 
@@ -198,11 +229,18 @@ cd cosmetic
    File > Open > cosmetic 폴더 선택
    ```
 
-2. **Configure API Keys**
+2. **Configure API Keys and Base URL**
    
    프로젝트 루트에 `local.properties` 파일을 생성하고 다음 내용을 추가:
    ```properties
    GEMINI_API_KEY=your_gemini_api_key_here
+   API_BASE_URL=http://localhost:5000/
+   ```
+   
+   개발 환경에서 ngrok을 사용하는 경우:
+   ```properties
+   GEMINI_API_KEY=your_gemini_api_key_here
+   API_BASE_URL=https://your-ngrok-url.ngrok.io/
    ```
 
 3. **Sync Gradle**
@@ -263,7 +301,7 @@ cd cosmetic
    ngrok http 5000
    ```
    
-   생성된 ngrok URL을 `RetrofitClient.kt`의 `BASE_URL`에 설정합니다.
+   생성된 ngrok URL을 `local.properties`의 `API_BASE_URL`에 설정합니다.
 
 ### **Run Application**
 
@@ -276,9 +314,15 @@ cd cosmetic
 
 2. **Configure API Endpoint in Android App**
    
-   `app/src/main/java/com/example/cosmetic/network/RetrofitClient.kt`에서 `BASE_URL`을 백엔드 서버 주소로 설정:
-   ```kotlin
-   private const val BASE_URL = "https://your-ngrok-url.ngrok.io/"
+   프로젝트 루트의 `local.properties` 파일에 `API_BASE_URL`을 추가:
+   ```properties
+   GEMINI_API_KEY=your_gemini_api_key_here
+   API_BASE_URL=https://your-ngrok-url.ngrok.io/
+   ```
+   
+   또는 개발 환경에서는:
+   ```properties
+   API_BASE_URL=http://localhost:5000/
    ```
 
 3. **Run Android App**
@@ -316,6 +360,7 @@ cd cosmetic
 ## 📚 Additional Documentation
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - 시스템 아키텍처 및 역할 분담 상세 문서
+- [SETUP_GUIDE.md](./SETUP_GUIDE.md) - API Base URL 설정 및 리팩토링 가이드
 
 ---
 

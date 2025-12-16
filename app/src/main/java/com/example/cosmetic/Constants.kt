@@ -107,6 +107,7 @@ object Constants {
         const val INGREDIENT_PARSER = "IngredientParser"
         const val MAIN_ACTIVITY = "MainActivity"
         const val SCAN_FRAGMENT = "ScanFragment"
+        const val NETWORK = "Network"
     }
     
     /**

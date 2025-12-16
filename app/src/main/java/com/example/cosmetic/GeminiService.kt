@@ -50,7 +50,10 @@ import kotlinx.coroutines.withContext
  * @see DetailsFragment 뱃지 클릭 시 번역 기능 사용
  * @see ResultsFragment 성분 상세 정보 생성 시 사용
  */
-class GeminiService(private val apiKey: String) {
+class GeminiService(
+    apiKey: String? = null
+) {
+    private val apiKey: String = apiKey ?: com.example.cosmetic.config.AppConfig.geminiApiKey
     
     private val model = GenerativeModel(
         modelName = MODEL_NAME,
