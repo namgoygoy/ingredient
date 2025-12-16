@@ -73,16 +73,6 @@
 }
 ```
 
-**Request Schema (Kotlin)**
-
-```kotlin
-data class AnalyzeProductRequest(
-    val ingredients: List<String>,      // 성분 리스트
-    @SerializedName("skin_type")
-    val skinType: String                // 피부 타입
-)
-```
-
 ### 2. Response (응답)
 
 **Status: 200 OK**
@@ -108,58 +98,6 @@ data class AnalyzeProductRequest(
 }
 ```
 
-**Response Schema (Kotlin)**
-
-```kotlin
-data class AnalyzeProductResponse(
-    @SerializedName("analysis_report")
-    val analysisReport: String,         // 분석 리포트 내용
-    @SerializedName("good_matches")
-    val goodMatches: List<GoodMatch>,   // 좋은 성분 리스트
-    @SerializedName("bad_matches")
-    val badMatches: List<BadMatch>,     // 주의 성분 리스트
-    val success: Boolean                // 성공 여부
-)
-```
-
-### 3. Error Responses (예외 처리)
-
-#### 🛑 400 Bad Request
-필수 값이 누락되었거나 유효하지 않은 값이 전달된 경우입니다.
-
-**Case 1: 필수 필드(`ingredients`) 누락**
-
-```json
-{
-  "detail": "ingredients 필드는 필수 항목입니다."
-}
-```
-
-**Case 2: 유효하지 않은 `skin_type`**
-허용값: 건성, 지성, 복합성, 민감성
-
-```json
-{
-  "detail": "유효하지 않은 피부 타입입니다. (허용값: 건성, 지성, 복합성, 민감성)"
-}
-```
-
-#### 🛑 422 Unprocessable Entity
-데이터 타입이 일치하지 않는 경우입니다.
-
-**Case 1: List가 와야 하는데 String을 보낸 경우**
-
-```json
-{
-  "detail": [
-    {
-      "loc": ["body", "ingredients"],
-      "msg": "value is not a valid list",
-      "type": "type_error.list"
-    }
-  ]
-}
-```
 ---
 
 ## 🔧 Stack
