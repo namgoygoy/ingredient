@@ -1,4 +1,4 @@
-# 🧴 Cosmetic - AI-Powered Cosmetic Ingredient Analyzer
+# Cosmetic - AI-Powered Cosmetic Ingredient Analyzer
 
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)
@@ -32,15 +32,15 @@
 
 기존 화장품 성분 분석 서비스들은 대부분 수동으로 성분을 입력해야 하거나, 제한적인 데이터베이스로 인해 정확도가 떨어지는 경우가 많습니다. **Cosmetic**은 다음과 같은 차별점을 제공합니다:
 
-1. **📸 원스톱 편의성**: 스마트폰 카메라로 성분표를 촬영하기만 하면 자동으로 분석이 완료됩니다. 복잡한 입력 과정 없이 즉시 결과를 확인할 수 있습니다.
+1. **원스톱 편의성**: 스마트폰 카메라로 성분표를 촬영하기만 하면 자동으로 분석이 완료됩니다. 복잡한 입력 과정 없이 즉시 결과를 확인할 수 있습니다.
 
-2. **🎯 RAG 기반 정확성**: 일반적인 LLM 기반 서비스와 달리, RAG(Retrieval-Augmented Generation) 아키텍처를 채택하여 검증된 11,000개 이상의 성분 데이터베이스를 직접 검색합니다. 이를 통해 할루시네이션 없이 정확하고 신뢰할 수 있는 정보를 제공합니다.
+2. **RAG 기반 정확성**: 일반적인 LLM 기반 서비스와 달리, RAG(Retrieval-Augmented Generation) 아키텍처를 채택하여 검증된 11,000개 이상의 성분 데이터베이스를 직접 검색합니다. 이를 통해 할루시네이션 없이 정확하고 신뢰할 수 있는 정보를 제공합니다.
 
-3. **🔬 하이브리드 검색 시스템**: Supabase PostgreSQL과 ChromaDB 벡터 스토어를 결합한 하이브리드 검색으로, 정확한 키워드 매칭과 의미 기반 유사도 검색을 동시에 지원합니다. Supabase 연결 실패 시 JSON 파일로 자동 폴백하여 안정성을 보장합니다.
+3. **하이브리드 검색 시스템**: Supabase PostgreSQL과 ChromaDB 벡터 스토어를 결합한 하이브리드 검색으로, 정확한 키워드 매칭과 의미 기반 유사도 검색을 동시에 지원합니다. Supabase 연결 실패 시 JSON 파일로 자동 폴백하여 안정성을 보장합니다.
 
-4. **🤖 지능형 보완 시스템**: RAG 서버가 주요 분석 엔진으로 동작하며, 정보가 부족한 경우에만 Gemini AI를 보완 엔진으로 활용합니다. 이를 통해 API 비용을 최소화하면서도 완전한 정보 제공이 가능합니다.
+4. **지능형 보완 시스템**: RAG 서버가 주요 분석 엔진으로 동작하며, 정보가 부족한 경우에만 Gemini AI를 보완 엔진으로 활용합니다. 이를 통해 API 비용을 최소화하면서도 완전한 정보 제공이 가능합니다.
 
-5. **📊 피부 타입별 맞춤 분석**: 단순히 성분을 나열하는 것이 아니라, 사용자의 피부 타입을 기반으로 각 성분의 `good_for`와 `bad_for` 속성을 분석하여 개인화된 평가를 제공합니다.
+5. **피부 타입별 맞춤 분석**: 단순히 성분을 나열하는 것이 아니라, 사용자의 피부 타입을 기반으로 각 성분의 `good_for`와 `bad_for` 속성을 분석하여 개인화된 평가를 제공합니다.
 
 ---
 
@@ -50,7 +50,7 @@
 
 ---
 
-## 📊 Logic Flow (Sequence Diagram)
+## Logic Flow (Sequence Diagram)
 
 <div align="center">
   <img width="845" height="629" alt="image시퀸스" src="https://github.com/user-attachments/assets/04f2919a-2e44-45f5-8780-97f118d5c1dc" />
@@ -58,7 +58,7 @@
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 - **URL:** `/analyze_product`
 - **Method:** `POST`
@@ -107,41 +107,12 @@
 
 ## 🔧 Stack
 
-### **Frontend (Mobile)**
-- **Language**: Kotlin
-- **Framework**: Android SDK
-- **UI/UX**: Material Design, ViewBinding
-- **Architecture**: MVVM (ViewModel, LiveData)
-- **Async Processing**: Kotlin Coroutines, Flow
-- **Navigation**: Navigation Component
-- **Camera**: CameraX
-- **OCR**: ML Kit Text Recognition (Korean)
-- **Network**: Retrofit2, OkHttp3
-- **AI Integration**: Google Gemini AI SDK
-
-### **Backend**
-- **Language**: Python 3.13
-- **Framework**: FastAPI
-- **RAG Framework**: LangChain
-- **Vector Database**: ChromaDB
-- **Embeddings**: Sentence Transformers (paraphrase-multilingual-MiniLM-L12-v2)
-- **Database**: Supabase PostgreSQL (JSON Fallback)
-- **API Documentation**: Swagger UI, ReDoc
-
-### **Database & Storage**
-- **Primary**: Supabase PostgreSQL
-- **Vector Store**: ChromaDB (Persistent)
-- **Fallback**: JSON File (ingredients.json)
-
-### **AI/ML**
-- **LLM**: Google Gemini 2.5 Flash
-- **Embedding Model**: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-- **Text Processing**: LangChain Text Splitters
-
-### **Infrastructure**
-- **Development**: Local Development Server (uvicorn)
-- **Production**: TBD (AWS/GCP/Azure)
-- **API Gateway**: ngrok (Development)
+| Category | Technology |
+| :--- | :--- |
+| **Android** | **Kotlin**, Android SDK, MVVM, Coroutines, CameraX, ML Kit (OCR) |
+| **Backend** | **Python (FastAPI)**, LangChain, Supabase (PostgreSQL), ChromaDB |
+| **AI / ML** | **Google Gemini 2.5 Flash**, Sentence Transformers, HuggingFace Embeddings |
+| **Tools** | Swagger UI, Retrofit2, OkHttp3, ngrok |
 
 ---
 
