@@ -223,167 +223,41 @@ cosmetic/
 ```
 
 ---
+# 실행 및 설정 가이드 (Setup & Run)
 
-## 💻 Getting Started
-
-### **Prerequisites**
-
-- **Android Development**
-  - Android Studio Hedgehog | 2023.1.1 or later
-  - JDK 11 or later
-  - Android SDK (API Level 24+)
-  - Gradle 8.0+
-
-- **Backend Development**
-  - Python 3.13 or later
-  - pip (Python Package Manager)
-  - Supabase Account (Optional, for PostgreSQL)
-
-### **Installation**
-
-#### **1. Clone Repository**
+### 1. 백엔드 서버 실행 (Backend)
+가상 환경 활성화 후 Supabase 연동 서버를 실행합니다. (기본 포트: `5000`)
 
 ```bash
-git clone https://github.com/your-username/cosmetic.git
-cd cosmetic
+cd backend
+source venv/bin/activate
+python rag_server_supabase.py  # 또는 ./start_server_supabase.sh
 ```
 
-#### **2. Android App Setup**
+### 2. 안드로이드 연동 설정 (Configuration)
+모바일 기기에서 로컬 서버에 접근하기 위해 ngrok을 사용하거나 로컬 주소를 설정합니다.
 
-1. **Open Project in Android Studio**
-   ```bash
-   # Android Studio에서 프로젝트 열기
-   File > Open > cosmetic 폴더 선택
-   ```
+Ngrok 실행 (옵션):
 
-2. **Configure API Keys and Base URL**
-   
-   프로젝트 루트에 `local.properties` 파일을 생성하고 다음 내용을 추가:
-   ```properties
-   GEMINI_API_KEY=your_gemini_api_key_here
-   API_BASE_URL=http://localhost:5000/
-   ```
-   
-   개발 환경에서 ngrok을 사용하는 경우:
-   ```properties
-   GEMINI_API_KEY=your_gemini_api_key_here
-   API_BASE_URL=https://your-ngrok-url.ngrok.io/
-   ```
+```bash
+ngrok http 5000
+local.properties 설정: 프로젝트 루트의 local.properties에 아래 내용을 추가합니다.
+```
 
-3. **Sync Gradle**
-   ```
-   Android Studio에서 File > Sync Project with Gradle Files
-   ```
+```properties
+GEMINI_API_KEY=사용자_GEMINI_API_KEY
+API_BASE_URL=[https://생성된-ngrok-url.io/](https://생성된-ngrok-url.io/)  # 로컬 환경: http://localhost:5000/
+```
+### 3. 앱 실행 (Run App)
+Android Studio 또는 터미널을 통해 앱을 빌드하고 실행합니다.
 
-4. **Build & Run**
-   ```
-   Run > Run 'app' 또는 Shift+F10
-   ```
+```bash
+./gradlew installDebug
+4. 설치 검증 (Verification)
+```
 
-#### **3. Backend Server Setup**
+* 서버 상태 확인: curl http://localhost:5000/health 명령어로 status: healthy 응답 확인.
 
-1. **Create Virtual Environment**
-   ```bash
-   cd backend
-   python3 -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
-   ```
+* 앱 기능 테스트: 피부 타입 선택 → 카메라 권한 허용 → 성분표 촬영 → 분석 결과 출력 확인.
 
-2. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure Supabase (Optional)**
-   
-   `backend/` 디렉토리에 `.env` 파일을 생성:
-   ```env
-   SUPABASE_URL=your_supabase_project_url
-   SUPABASE_KEY=your_supabase_anon_key
-   ```
-   
-   Supabase를 사용하지 않으면 JSON 파일 모드로 자동 폴백됩니다.
-
-4. **Initialize Database (Supabase 사용 시)**
-   
-   Supabase SQL Editor에서 `SUPABASE_SETUP.sql` 파일의 내용을 실행하여 테이블을 생성합니다.
-
-5. **Run Server**
-   ```bash
-   # 개발 서버 실행 (JSON 모드)
-   ./start_server.sh
-   
-   # Supabase 연동 서버 실행
-   ./start_server_supabase.sh
-   
-   # 또는 직접 실행
-   python rag_server_supabase.py
-   ```
-   
-   서버는 기본적으로 `http://localhost:5000`에서 실행됩니다.
-
-6. **Setup ngrok (Android App에서 접근하기 위해)**
-   ```bash
-   # ngrok 설치 후
-   ngrok http 5000
-   ```
-   
-   생성된 ngrok URL을 `local.properties`의 `API_BASE_URL`에 설정합니다.
-
-### **Run Application**
-
-1. **Start Backend Server**
-   ```bash
-   cd backend
-   source venv/bin/activate
-   python rag_server_supabase.py
-   ```
-
-2. **Configure API Endpoint in Android App**
-   
-   프로젝트 루트의 `local.properties` 파일에 `API_BASE_URL`을 추가:
-   ```properties
-   GEMINI_API_KEY=your_gemini_api_key_here
-   API_BASE_URL=https://your-ngrok-url.ngrok.io/
-   ```
-   
-   또는 개발 환경에서는:
-   ```properties
-   API_BASE_URL=http://localhost:5000/
-   ```
-
-3. **Run Android App**
-   
-   Android Studio에서 앱을 실행하거나:
-   ```bash
-   ./gradlew installDebug
-   ```
-
-### **Verify Installation**
-
-1. **Backend Health Check**
-   ```bash
-   curl http://localhost:5000/health
-   ```
-   
-   응답 예시:
-   ```json
-   {
-     "status": "healthy",
-     "message": "RAG 서버 정상 작동 중",
-     "ingredients_count": 11111,
-     "database": "supabase",
-     "features": ["Supabase PostgreSQL", "ChromaDB Vector Store", "LangChain RAG Pipeline", "FastAPI Async"]
-   }
-   ```
-
-2. **Android App**
-   - 앱 실행 후 피부 타입 선택 화면이 표시되는지 확인
-   - 카메라 권한 요청이 정상적으로 동작하는지 확인
-   - 성분표 촬영 후 분석 결과가 표시되는지 확인
-
-- [ingredients.json 데이터 소스 출처를 여기에 추가하세요]
-- Google ML Kit for Korean Text Recognition
-- Google Gemini AI for content generation
-- Supabase for PostgreSQL hosting
-
+Tech Stack: Google ML Kit (OCR), Google Gemini AI, Supabase (PostgreSQL)
